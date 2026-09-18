@@ -1,6 +1,6 @@
 (function(global){
   'use strict';
-  const Store=global.UltimatumAdventureStore;
+  const Store=global.UltimatumSaveStore;
   class CloudUI {
     constructor(root,host,cloud=new global.UltimatumCloudClient()){
       this.root=root;this.host=host;this.cloud=cloud;this.busy=false;this.background=false;this.confirmation=null;this.view='overview';

@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #include "adventure_package.h"
+#include "save_store_contract.h"
 #include "save_slots.h"
 #include "save_validation.h"
 #include "topicjournal.h"
@@ -166,10 +167,10 @@ bool install(const std::string &base, int slot, const Bundle &bundle, const std:
         Bundle old;
         if(readCheckpoint(base,old,error)) {
             const std::string recovery=SaveSnapshot::begin(root);
-            if(recovery.empty() || !writeFiles(recovery,old.files) || !SaveSnapshot::publish(root,recovery,required(old.files)))return fail(error,"The legacy adventure's recovery copy could not be secured. Import was not published.");
+            if(recovery.empty() || !writeFiles(recovery,old.files) || !SaveStoreContract::publish(root,recovery,required(old.files),SaveStoreContract::inspect(root).currentGenerationId))return fail(error,"The legacy adventure's recovery copy could not be secured. Import was not published.");
         } else return fail(error,"The legacy adventure needs recovery before it can be replaced safely.");
     }
-    if(!SaveSnapshot::publish(root,generation,required(bundle.files)))
+    if(!SaveStoreContract::publish(root,generation,required(bundle.files),expectedCurrent))
         return fail(error,"Checkpoint publication did not finish. Keep the app open and review the slot; all checkpoint files were kept.");
     // Do not prune on import: retain previous/recovery evidence, including
     // generations behind a damaged old pointer. Ordinary successful saves

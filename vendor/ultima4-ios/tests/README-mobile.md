@@ -6,6 +6,18 @@ On macOS with the Xcode command-line tools installed:
 ./tests/run-mobile-tests.sh
 ```
 
+On Windows, use the repository-owned WSL bootstrap. It installs a separate
+Ubuntu development distribution and its Clang, CMake, Ninja, and zlib packages;
+it does not modify Docker's internal distributions:
+
+```powershell
+.\vendor\ultima4-ios\tests\bootstrap-windows-native-tests.ps1
+.\vendor\ultima4-ios\tests\run-mobile-tests.ps1
+```
+
+The bootstrap is idempotent. If Windows has just installed or updated WSL, a
+restart may be required before the first package installation.
+
 The runner builds in a temporary directory and runs the following suites:
 
 - `experience`: profile defaults, overrides, migration, validation, and atomic persistence.
@@ -18,9 +30,10 @@ The runner builds in a temporary directory and runs the following suites:
 - `map-discoveries`: exposure-only place markers and persistence.
 - `dungeon-exploration`: visited floor cells and metadata validation.
 - `dungeon-sight`: remembered first-person dungeon visibility.
-- `lifecycle`: background checkpoint and inactive-input policy.
+- `native-session`: versioned pause, checkpoint, quiesce, resume, shutdown, duplicate-event, and inactive-input policy.
 - `recovery`: validated previous-checkpoint routing and rollback.
 - `snapshots`: complete-generation publication and unsafe pointer rejection.
+- `save-store-contract`: stable generation identity, compare-and-swap publication, and recovery.
 - `slots`: active-slot persistence, legacy Slot 1 compatibility, and isolated snapshot roots.
 - `adventures`: engine party/creature serialization with snapshot selection and journal isolation.
 

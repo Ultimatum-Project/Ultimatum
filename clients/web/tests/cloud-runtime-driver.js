@@ -10,7 +10,7 @@
     assert(location.hostname==='127.0.0.1'&&window.UltimatumCloudConfig.project==='ultimatum-test','Isolated test origin/project required');
     const fixture=await(await fetch('/cloud-fixture.json')).json(),identity=fixture[0];
     await wait(()=>adventures.ready,'Title not ready');
-    const store=adventures.store,Store=window.UltimatumAdventureStore;
+    const store=adventures.store,Store=window.UltimatumSaveStore;
     const imported=Store.decode(await(await fetch('/cloud-adventure.u4save')).text()),summary=engine.validateAdventure(imported.files);
     await store.commit(2,imported.files,summary,'Cloud test adventure');
     const original=await store.get(2);

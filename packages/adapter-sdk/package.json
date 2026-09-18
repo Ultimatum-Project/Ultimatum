@@ -1,0 +1,7 @@
+{
+  "name": "@ultimatum/adapter-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/validate-port-descriptor.mjs"
+}

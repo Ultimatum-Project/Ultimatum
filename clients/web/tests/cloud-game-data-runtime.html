@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/cloud.css"><title>Cloud game-data runtime test</title></head>
 <body><main id="cloudPanel" class="cloud-panel"></main><pre id="runtimeReport"></pre>
-<script src="/adventure-store.js"></script><script src="/cloud-ui.js"></script><script>
+<script src="/save-store.js"></script><script src="/cloud-ui.js"></script><script>
 (async()=>{
   const report=document.querySelector('#runtimeReport'),results=[],assert=(v,m)=>{if(!v)throw Error(m)},button=t=>[...document.querySelectorAll('button')].find(b=>b.textContent===t),tap=async b=>{assert(b,'Missing button');b.click();await new Promise(r=>setTimeout(r,0))};
   let resource=null,installed=false;

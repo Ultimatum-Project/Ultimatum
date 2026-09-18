@@ -4,7 +4,13 @@ const worldContext = canvas.getContext("2d", { alpha: false });
 const ui = Object.fromEntries([...document.querySelectorAll("[id]")].map(element => [element.id, element]));
 const cloudConfigured=Boolean(window.UltimatumCloudConfig?.url&&window.UltimatumCloudConfig?.key);
 const runtimeModule = () => document.ultimatumRuntimeModule || window.UltimatumRuntimeModule || window.Module;
-const engine = new window.UltimatumEngineClient(runtimeModule);
+const engine = new window.UltimatumEngineSession(new window.UltimatumEngineClient(runtimeModule));
+const library = new window.UltimatumIndexedDbLibraryStore();
+const gameDataImporter = new window.UltimaIVImportAdapter({
+  gameData: window.UltimatumGameData,
+  extractZip: (buffer, maxBytes) => engine.extractGameZip(buffer, maxBytes),
+  maxZipBytes: 128 * 1024 * 1024,
+});
 const adventures = new window.UltimatumAdventureUI(engine, {
   start: restoreSave => startEngine(restoreSave),
   isStarted: () => engineStarted,
@@ -54,7 +60,6 @@ let recoveryDownloadRequest = 0;
 let storageFlushPending = false;
 let storageDirty = false;
 let lifecycleSecuring = null;
-const LIBRARY_DB = "ultimatum-local-library-v1";
 const MAX_ZIP_BYTES = 128 * 1024 * 1024;
 const LEGACY_SCREEN = { width: 320, height: 200 };
 const WORLD_VIEW = { x: 8, y: 8, width: 176, height: 176 };
@@ -129,35 +134,6 @@ function copyEngineFrame() {
 
 requestAnimationFrame(copyEngineFrame);
 
-function openLibrary() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(LIBRARY_DB, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("assets");
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function libraryGet(key) {
-  const database = await openLibrary();
-  return new Promise((resolve, reject) => {
-    const request = database.transaction("assets").objectStore("assets").get(key);
-    request.onsuccess = () => { database.close(); resolve(request.result); };
-    request.onerror = () => { database.close(); reject(request.error); };
-  });
-}
-
-async function libraryPut(key, value) {
-  const database = await openLibrary();
-  return new Promise((resolve, reject) => {
-    const transaction = database.transaction("assets", "readwrite");
-    transaction.objectStore("assets").put(value, key);
-    transaction.oncomplete = () => { database.close(); resolve(); };
-    transaction.onerror = () => { database.close(); reject(transaction.error); };
-    transaction.onabort = () => { database.close(); reject(transaction.error || Error("The game-library transaction was cancelled.")); };
-  });
-}
-
 function setImportStatus(message, state = "") {
   ui.importStatus.textContent = message;
   ui.importStatus.dataset.state = state;
@@ -198,11 +174,10 @@ function openAccountFromData() {
 }
 
 async function activateGamePackage(record, description) {
-  const entries = record.kind === "zip" ? engine.extractGameZip(record.data, MAX_ZIP_BYTES) : record.files;
   setImportStatus("Checking the complete DOS/EGA game data…", "busy");
-  const verified = await window.UltimatumGameData.validate(entries);
+  const {verified} = await gameDataImporter.prepare(record);
   const rollback = engineStarted ? null : engine.replaceGameFiles(verified.files);
-  try {await libraryPut("game", verified);} catch(error) {rollback?.(); throw error;}
+  try {await library.put("source-data", verified);} catch(error) {rollback?.(); throw error;}
   rollback?.commit();
   const notes = ` Verified ${verified.verification.label} data.${verified.verification.otherDirectories ? ` Using ${verified.verification.directory || "the ZIP root"}; other folders were not imported.` : ""}`;
   if (engineStarted) {
@@ -216,19 +191,18 @@ async function activateGamePackage(record, description) {
 }
 
 async function localGameDataForCloud() {
-  const saved = await libraryGet("game");
+  const saved = await library.get("source-data");
   if (!saved) return {available:false};
   if (saved.kind === "zip") await waitForRuntimeFilesystem();
-  const entries = saved.kind === "zip" ? engine.extractGameZip(saved.data, MAX_ZIP_BYTES) : saved.files;
-  const verified = await window.UltimatumGameData.validate(entries);
+  const {verified} = await gameDataImporter.prepare(saved);
   return {available:true,profile:verified.profile,label:verified.verification.label,logicalBytes:verified.files.reduce((sum,file)=>sum+file.data.byteLength,0),text:window.UltimatumGameData.encodePackage(verified)};
 }
 
 async function installCloudGameData(text) {
-  const verified = await window.UltimatumGameData.decodePackage(text);
+  const {verified} = await gameDataImporter.preparePackage(text);
   await waitForRuntimeFilesystem();
   const rollback = engineStarted ? null : engine.replaceGameFiles(verified.files);
-  try { await libraryPut("game", verified); } catch (error) { rollback?.(); throw error; }
+  try { await library.put("source-data", verified); } catch (error) { rollback?.(); throw error; }
   rollback?.commit();
   if (engineStarted) {
     ui.reloadDataButton.hidden = false;
@@ -272,11 +246,11 @@ async function prepareRuntime() {
   ui.adventureData.disabled = false;
   ui.engineStatus.querySelector("span").textContent = "Opening the saved game…";
   try {
-    const [savedGame, savedVga] = await Promise.all([libraryGet("game"), libraryGet("vga")]);
+    const [savedGame, savedVga] = await Promise.all([library.get("source-data"), library.get("optional-overlay")]);
     const restoreGameSave = !engine.hasSave();
     if (savedGame) {
       const entries = savedGame.kind === "zip" ? engine.extractGameZip(savedGame.data, MAX_ZIP_BYTES) : savedGame.files;
-      const verified = await window.UltimatumGameData.validate(entries);
+      const {verified} = await gameDataImporter.prepare(savedGame);
       engine.replaceGameFiles(verified.files).commit();
       // Existing classic saves are independent of the game-data library.
       // Legacy embedded saves migrate only if no working save exists.
@@ -1306,7 +1280,7 @@ ui.gameFolderInput.addEventListener("change", async () => {
   if (!selected.length) return;
   setImportStatus(`Reading ${selected.length} files…`, "busy");
   try {
-    const candidates = window.UltimatumGameData.select(selected.map(file => ({name:file.webkitRelativePath || file.name, size:file.size, file})));
+    const candidates = gameDataImporter.select(selected.map(file => ({name:file.webkitRelativePath || file.name, size:file.size, file})));
     const files = await Promise.all(candidates.map(async entry => ({name:entry.name, data:await entry.file.arrayBuffer()})));
     await activateGamePackage({ kind: "files", files }, `The ${ui.gameFolderInput.files[0].webkitRelativePath.split("/")[0] || "selected"} folder`);
   } catch (error) {

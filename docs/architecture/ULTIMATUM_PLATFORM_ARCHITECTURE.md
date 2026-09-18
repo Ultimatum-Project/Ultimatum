@@ -55,7 +55,7 @@ The repository currently contains three material product surfaces:
 | Native rendering | SDL world presentation combined with UIKit-owned controls, panels, sheets, maps, and accessibility metadata. |
 | Original-data import | Web folder, local ZIP, and CORS URL import with one complete-install selection, exact reviewed 103-file profiles, bounded archive extraction, staging, verification, and failed-replacement rollback. |
 | Recognized editions | Reviewed English DOS/EGA profiles including the documented 1.01 data-fix variation. Other releases are rejected until independently reviewed. |
-| Browser storage | IndexedDB library records for installed data; a separate IndexedDB three-slot adventure store; Emscripten IDBFS as a legacy working-copy mirror. |
+| Browser storage | IndexedDB library records for installed data; a separate IndexedDB three-slot save store; Emscripten IDBFS as a legacy working-copy mirror. |
 | Native storage | Native filesystem data plus immutable checkpoint generations selected by atomically replaced `CURRENT` and `PREVIOUS` pointers. |
 | Saves | Three isolated adventure slots; validated current/previous recovery; automatic safe checkpoints; stale-writer protection; emergency export; metadata-only journal transactions; local import/export. |
 | Portable saves | Cross-platform `.u4save` version 1 packages shared by web and iOS, with allowlisted files, size checks, CRC32 integrity, and native semantic validation before activation. |
@@ -67,6 +67,7 @@ The repository currently contains three material product surfaces:
 | Packaging and licensing | Public BYOD package excludes original DOS data and alternate soundtrack packs, retains the soundtrack supplied with xu4, publishes corresponding engine source and licenses, and uses content-addressed engine chunks. |
 | Browser lifecycle and offline shell | Page visibility, `pagehide`, freeze/resume, BFCache return, periodic safe checkpoints, IndexedDB/IDBFS flush, active-session reload recovery, installable PWA metadata, and a versioned service worker that never owns user data. |
 | Runtime verification | Isolated real-engine browser suites, native model/layout tests, simulator flows, cross-client save round trips, signed device builds, and preservation of user saves through installation. |
+| Phase 0.5 compatibility layer | Schema-backed Ultima IV port, save-provider, and session-provider descriptors are checked in under `ports/` and `packages/`. The active web client runs through compatibility `EngineSession`, import-adapter, IndexedDB library-provider, and `SaveStore` boundaries; native saves and SDL lifecycle transitions use the corresponding compatibility contracts. Logical storage roles map to existing physical records and mounts without migration. |
 
 The detailed implementation status is recorded in:
 
@@ -1016,9 +1017,21 @@ A stable port release requires supported-edition import, two launch/exit cycles 
 
 **Goal:** Introduce reusable interfaces without changing user-visible behavior.
 
+**Implementation complete:** The checked-in compatibility layer defines the port descriptor and
+engine-snapshot schemas, validates the Ultima IV manifest, and places the active
+web client behind compatibility `EngineSession`, import-adapter, IndexedDB
+library-provider, and `SaveStore` boundaries. The browser provider projects its
+unchanged slot records through record/generation operations; the native provider
+projects immutable directories and atomic pointers through the same semantics.
+The active iOS/SDL path now routes lifecycle and orderly-quit behavior through
+a versioned native `EngineSession` compatibility state machine. A shared
+provider manifest and executable conformance checks cover both active clients.
+Native simulator/device verification remains a release gate rather than an
+unimplemented compatibility boundary.
+
 - Wrap the current web importer as the first import adapter and store provider.
 - Wrap `EngineClient`/C++ bridge as the first `EngineSession`.
-- Wrap browser `AdventureStore` and native snapshot generations behind shared save semantics.
+- Wrap browser `SaveStore` and native snapshot generations behind shared save semantics. The JavaScript type and asset now use this name; the old IndexedDB and `.u4save` identifiers remain compatibility-frozen.
 - Define logical storage roles and map current physical locations without moving data.
 - Extract catalog/port descriptors for Ultima IV.
 - Add adapter and session conformance tests around current behavior.

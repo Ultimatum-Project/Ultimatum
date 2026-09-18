@@ -2,8 +2,8 @@
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),vm=require("node:vm"),assert=require("node:assert/strict");
 const {execFileSync}=require("node:child_process");
 const sandbox={Uint8Array,btoa,atob};
-vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,"../../../clients/web/dist/adventure-store.js"),"utf8"),sandbox);
-const Store=sandbox.UltimatumAdventureStore;
+vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,"../../../clients/web/dist/save-store.js"),"utf8"),sandbox);
+const Store=sandbox.UltimatumSaveStore;
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),"ultimatum-package-roundtrip-"));
 try {
   for(const kind of ["fixture","world-fixture"]){

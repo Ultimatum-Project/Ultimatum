@@ -1,0 +1,27 @@
+{
+  "$schema": "../../packages/save-store/schemas/save-store-provider.schema.json",
+  "contractVersion": 1,
+  "gameId": "ultima4",
+  "providers": [
+    {
+      "id": "web-indexeddb-save-store-v1",
+      "host": "web",
+      "physicalModel": "IndexedDB ultimatum-adventures-v1 / slots with current and previous checkpoints"
+    },
+    {
+      "id": "native-generation-save-store-v1",
+      "host": "native",
+      "physicalModel": "Immutable generation directories selected by atomic CURRENT and PREVIOUS pointers"
+    }
+  ],
+  "portableFormats": [
+    { "format": "ultimatum-adventure", "version": 1, "extension": ".u4save" }
+  ],
+  "semantics": {
+    "currentAndPrevious": true,
+    "compareAndSwap": true,
+    "atomicPublication": true,
+    "quarantineExport": true,
+    "metadataOnlyTransactions": true
+  }
+}

@@ -1,6 +1,6 @@
 (function (global) {
   "use strict";
-  const Store=global.UltimatumAdventureStore;
+  const Store=global.UltimatumSaveStore;
   const ACTIVE_SESSION="ultimatum-active-session-v1";
   class AdventureUI {
     constructor(engine, hooks) {

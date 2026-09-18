@@ -78,7 +78,7 @@ export async function build(options = {}) {
   await writeFile(path.join(staging,"build-info.json"),JSON.stringify({soundtrack:"xu4",qaDebug:debugTools,cloudProject:cloud.project}));
   const play = path.join(staging,"play");
   await mkdir(path.join(play,"engine"),{recursive:true});
-  for (const name of ["index.html","app.css","app.js","engine-client.js","adventure-store.js","adventure-ui.js","journal-ui.js","cloud-sdk.js","cloud-sdk.js.LEGAL.txt","cloud-config.js","cloud-client.js","cloud-ui.js","cloud.css","game-data.js","game-data-manifest.js","manifest.webmanifest","sw.js"]) await cp(path.join(web,"dist",name),path.join(play,name));
+  for (const name of ["index.html","app.css","app.js","engine-client.js","engine-session.js","library-store.js","import-adapter.js","save-store.js","adventure-ui.js","journal-ui.js","cloud-sdk.js","cloud-sdk.js.LEGAL.txt","cloud-config.js","cloud-client.js","cloud-ui.js","cloud.css","game-data.js","game-data-manifest.js","manifest.webmanifest","sw.js"]) await cp(path.join(web,"dist",name),path.join(play,name));
   await writeFile(path.join(play,"cloud-config.js"),renderCloudConfig(audience));
   // Old decorative sprite URLs are unnecessary in the engine-backed UI and
   // should not cause game-data images to be copied into the public shell.
@@ -105,6 +105,8 @@ export async function build(options = {}) {
   await mkdir(source,{recursive:true});
   await mkdir(licenses,{recursive:true});
   await cp(path.join(repo,".env.example"),path.join(source,".env.example"));
+  for (const directory of ["packages/adapter-sdk","packages/import-framework","packages/save-store","packages/semantic-session","packages/storage","ports/ultima-iv"])
+    await copyDirectory(path.join(repo,directory),path.join(source,directory));
   await cp(path.join(web,".cache/deps/libxml2/Copyright"),path.join(licenses,"libxml2.txt"));
   await cp(path.join(web,".cache/ports/SDL2/LICENSE.txt"),path.join(licenses,"SDL2.txt"));
   const zlibRoot = path.join(web,".cache/emscripten/ports/zlib");

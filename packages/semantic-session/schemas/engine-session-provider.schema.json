@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/engine-session-provider-v1.schema.json",
+  "title": "Ultimatum engine-session provider descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "gameId", "snapshotSchema", "providers", "semantics"],
+  "properties": {
+    "contractVersion": { "const": 1 },
+    "gameId": { "$ref": "#/$defs/id" },
+    "snapshotSchema": { "const": "engine-snapshot-v1" },
+    "providers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "host", "surface", "implementation", "activeWiring", "entryPoint", "executionModel", "operations"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "host": { "enum": ["web", "native"] },
+          "surface": { "enum": ["semantic", "lifecycle-compatibility"] },
+          "implementation": { "$ref": "#/$defs/path" },
+          "activeWiring": { "$ref": "#/$defs/path" },
+          "entryPoint": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "executionModel": { "enum": ["promise-serialized-main-thread", "serialized-sdl-event-loop"] },
+          "operations": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["start", "getSnapshot", "subscribe", "dispatch", "requestCheckpoint", "pause", "resume", "quiesce", "shutdown"]
+            }
+          }
+        }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serializedExecution", "lifecycleActionsOnEngineThread", "additiveSnapshots"],
+      "properties": {
+        "serializedExecution": { "const": true },
+        "lifecycleActionsOnEngineThread": { "const": true },
+        "additiveSnapshots": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "path": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+$", "minLength": 1, "maxLength": 240 }
+  }
+}

@@ -87,7 +87,7 @@
     await wait(()=>engine.call("zu4_web_test_generation","number")>generation && state().canSave,"safe world");
     const saveRevision=state().saveRevision;ui.saveButton.click();
     await wait(()=>state().saveRevision>saveRevision && adventures.saveRevision===state().saveRevision && !adventures.pendingCheckpoint,"final checkpoint");await adventures.saveQueue;
-    const record=await adventures.store.get(1),Store=window.UltimatumAdventureStore;
+    const record=await adventures.store.get(1),Store=window.UltimatumSaveStore;
     const encoded=Store.encode(record.current),decoded=Store.decode(encoded);
     assert(same(bytes(record.current.files),bytes(decoded.files)),"Notebook export is not byte-exact");
     engine.validateAdventure(decoded.files);

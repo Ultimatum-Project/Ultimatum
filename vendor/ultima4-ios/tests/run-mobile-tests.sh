@@ -41,11 +41,13 @@ mkdir "$MOBILE_TEST_BUILD/vga-zip" "$MOBILE_TEST_BUILD/vga-loose"
     "$MOBILE_SOURCE_DIR/mobile_dungeon_sight.cpp" "$TEST_SOURCE_DIR/mobile_dungeon_sight_test.cpp" \
     -o "$MOBILE_TEST_BUILD/dungeon-sight"
 "$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
-    "$TEST_SOURCE_DIR/mobile_lifecycle_test.cpp" -o "$MOBILE_TEST_BUILD/lifecycle"
+    "$TEST_SOURCE_DIR/native_engine_session_test.cpp" -o "$MOBILE_TEST_BUILD/native-session"
 "$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
     "$TEST_SOURCE_DIR/save_recovery_test.cpp" -o "$MOBILE_TEST_BUILD/recovery"
 "$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
     "$TEST_SOURCE_DIR/save_snapshot_test.cpp" -o "$MOBILE_TEST_BUILD/snapshots"
+"$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
+    "$TEST_SOURCE_DIR/save_store_contract_test.cpp" -o "$MOBILE_TEST_BUILD/save-store-contract"
 "$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
     "$TEST_SOURCE_DIR/save_slots_test.cpp" -o "$MOBILE_TEST_BUILD/slots"
 "$CXX" -std=c++14 -Wall -Wextra -Werror -I"$MOBILE_SOURCE_DIR" \
@@ -53,7 +55,7 @@ mkdir "$MOBILE_TEST_BUILD/vga-zip" "$MOBILE_TEST_BUILD/vga-loose"
     "$MOBILE_SOURCE_DIR/mobile_map_discoveries.cpp" "$MOBILE_SOURCE_DIR/mobile_dungeon_exploration.cpp" \
     "$TEST_SOURCE_DIR/adventure_snapshot_test.cpp" \
     "$MOBILE_TEST_BUILD/savegame.o" "$MOBILE_TEST_BUILD/io.o" -o "$MOBILE_TEST_BUILD/adventures"
-for MOBILE_TEST_CASE in experience topics notebook rules combat map-pins map-discoveries dungeon-exploration dungeon-sight lifecycle recovery snapshots slots adventures; do
+for MOBILE_TEST_CASE in experience topics notebook rules combat map-pins map-discoveries dungeon-exploration dungeon-sight native-session recovery snapshots save-store-contract slots adventures; do
     "$MOBILE_TEST_BUILD/$MOBILE_TEST_CASE"
     printf '%s passed\n' "$MOBILE_TEST_CASE"
 done

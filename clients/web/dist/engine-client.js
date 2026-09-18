@@ -162,7 +162,7 @@
 
     readAdventureFiles(directory = "/home/web_user/.xu4/") {
       const files = Object.create(null);
-      for (const name of global.UltimatumAdventureStore.FILES) {
+      for (const name of global.UltimatumSaveStore.FILES) {
         try {files[name]=this.module.FS.readFile(directory + name).slice();}
         catch(error) {if(this.pathExists(directory + name)) throw error;}
       }
@@ -172,7 +172,7 @@
     writeAdventureFiles(files, directory = "/home/web_user/.xu4/") {
       this.ensureDirectory(directory.replace(/\/$/, ""));
       // Only adventure-owned files are replaced. Settings and other files survive.
-      for (const name of global.UltimatumAdventureStore.FILES) {
+      for (const name of global.UltimatumSaveStore.FILES) {
         try {this.module.FS.unlink(directory + name);}
         catch(error) {if(this.pathExists(directory + name)) throw error;}
         if (files[name]) this.module.FS.writeFile(directory + name, files[name]);
@@ -180,7 +180,7 @@
     }
 
     validateAdventure(files) {
-      global.UltimatumAdventureStore.fingerprint(files);
+      global.UltimatumSaveStore.fingerprint(files);
       this.writeAdventureFiles(files, "/adventure-check/");
       const raw=this.call("zu4_web_save_info", "string", ["string"], ["/adventure-check/"]);
       const info=raw && JSON.parse(raw);

@@ -81,6 +81,7 @@ static void mobileCloudSyncAfterCheckpoint();
 #include "save_recovery.h"
 #include "save_slots.h"
 #include "save_snapshot.h"
+#include "save_store_contract.h"
 #include "test_tools_panel.h"
 #include "topic_panel.h"
 static TopicJournal mobileTopics;
@@ -2871,7 +2872,7 @@ bool gamePrepareJourney() {
     if (choice != "restore") return false;
     std::string name = previous.substr(root.size() + 1);
     name.pop_back();
-    if (!SaveSnapshot::writePointer(root, "CURRENT", name)) {
+    if (!SaveStoreContract::restore(root, name, SaveStoreContract::inspect(root).currentGenerationId)) {
         MobileTopicInput error;
         error.read("The checkpoint reference could not be restored. Your save files have been kept.", {mobileBack("back", "Menu")}, 0);
         return false;
@@ -3151,7 +3152,8 @@ bool gamePublishSaveDirectory(const std::string &directory, bool dungeon) {
     std::string base = zu4_settings_ptr()->path;
     std::string root = SaveSlots::snapshotRoot(base, SaveSlots::active(base));
     std::string previous = SaveSnapshot::current(root);
-    if (!SaveSnapshot::publish(root, directory, required)) return false;
+    if (!SaveStoreContract::publish(root, directory, required,
+                                    SaveStoreContract::inspect(root).currentGenerationId)) return false;
     SaveSnapshot::retainRecent(root, previous);
     return true;
 #else

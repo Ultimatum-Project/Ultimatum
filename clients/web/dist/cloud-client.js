@@ -43,7 +43,7 @@
       if(error)throw error;return data;
     }
     async upload(resource,expected,text,deviceName){
-      await this.requireAccount();global.UltimatumAdventureStore.decode(text);
+      await this.requireAccount();global.UltimatumSaveStore.decode(text);
       const {data,error}=await this.client.rpc('publish_account_adventure',{p_resource:resource||null,p_expected:expected||null,p_package:text,p_device:deviceName||null});
       if(error){
         if(error.message?.includes('cloud_conflict'))throw Error('This adventure changed on another device. Review both versions before choosing one.');
@@ -72,7 +72,7 @@
       return data.package;
     }
     async download(id){
-      const text=await this.downloadPackage(id);global.UltimatumAdventureStore.decode(text);return text;
+      const text=await this.downloadPackage(id);global.UltimatumSaveStore.decode(text);return text;
     }
     async downloadGameData(id){
       const text=await this.downloadPackage(id);await global.UltimatumGameData.decodePackage(text);return text;

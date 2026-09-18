@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/port-descriptor-v1.schema.json",
+  "title": "Ultimatum port descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "gameId",
+    "portId",
+    "adapterApiRange",
+    "portVersion",
+    "engine",
+    "editions",
+    "capabilities",
+    "actionsSchemaVersion",
+    "settingsSchemaVersion",
+    "saveSchemaVersion"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "gameId": { "$ref": "#/$defs/id" },
+    "portId": { "$ref": "#/$defs/id" },
+    "adapterApiRange": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "portVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "upstreamUrl", "sourceUrl", "licenseId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "upstreamUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "sourceUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "licenseId": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "editions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "importProfileIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "importProfileIds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/id" }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "offline", "saves", "mods", "multiplayer", "rendering", "threads",
+        "pointerLock", "input", "cloudSaveEligible", "supportsPause",
+        "supportsSuspend", "supportsMultipleProfiles", "supportsMultipleSurfaces"
+      ],
+      "properties": {
+        "offline": { "type": "boolean" },
+        "saves": { "enum": ["none", "opaque-files", "managed"] },
+        "mods": { "enum": ["none", "files", "packages", "custom"] },
+        "multiplayer": { "enum": ["none", "local", "peer", "server"] },
+        "rendering": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["canvas2d", "webgl", "webgl2", "webgpu", "dom", "native"] }
+        },
+        "threads": { "enum": ["none", "optional", "required"] },
+        "pointerLock": { "enum": ["none", "optional", "required"] },
+        "input": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["keyboard", "mouse", "gamepad", "touch", "gyro", "text"] }
+        },
+        "cloudSaveEligible": { "type": "boolean" },
+        "supportsPause": { "type": "boolean" },
+        "supportsSuspend": { "type": "boolean" },
+        "supportsMultipleProfiles": { "type": "boolean" },
+        "supportsMultipleSurfaces": { "type": "boolean" }
+      }
+    },
+    "actionsSchemaVersion": { "type": "integer", "minimum": 1 },
+    "settingsSchemaVersion": { "type": "integer", "minimum": 1 },
+    "saveSchemaVersion": { "type": "integer", "minimum": 1 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 }
+  }
+}

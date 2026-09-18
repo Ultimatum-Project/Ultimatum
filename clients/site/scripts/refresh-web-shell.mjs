@@ -29,7 +29,7 @@ for (const name of [assets.code,assets.wasm]) {
   const bytes = await readFile(path.join(build,"play/engine",name));
   if (!name.includes(hash(bytes).slice(0,16))) throw Error("The content-addressed engine has changed.");
 }
-const files = ["index.html","app.css","app.js","engine-client.js","adventure-store.js","adventure-ui.js","journal-ui.js","cloud-sdk.js","cloud-sdk.js.LEGAL.txt","cloud-config.js","cloud-client.js","cloud-ui.js","cloud.css","game-data.js","game-data-manifest.js"];
+const files = ["index.html","app.css","app.js","engine-client.js","save-store.js","adventure-ui.js","journal-ui.js","cloud-sdk.js","cloud-sdk.js.LEGAL.txt","cloud-config.js","cloud-client.js","cloud-ui.js","cloud.css","game-data.js","game-data-manifest.js"];
 for (const name of files) {
   const original = await readFile(path.join(web,"dist",name));
   let publicBytes = original;

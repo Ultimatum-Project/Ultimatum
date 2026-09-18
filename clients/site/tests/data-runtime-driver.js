@@ -131,7 +131,7 @@
     await wait(()=>state().inputMode==="command","audio cancellation returns to gameplay");
     assert(state().moves===2,"Audio menus and cancellation do not advance game turns");
     assert(!state().capabilities.debugTools,"Public runtime does not expose debug tools");
-    const store=new window.UltimatumAdventureStore();
+    const store=new window.UltimatumSaveStore();
     ui.saveButton.click();
     const until=Date.now()+30000;
     while(Date.now()<until && (await store.get(1))?.current?.summary?.moves!==2) await new Promise(r=>setTimeout(r,100));

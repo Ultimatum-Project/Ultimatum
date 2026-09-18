@@ -1,0 +1,10 @@
+{
+  "name": "@ultimatum/semantic-session",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/validate-engine-snapshot.mjs",
+    "./provider": "./src/validate-engine-session-provider.mjs"
+  }
+}

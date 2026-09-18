@@ -36,8 +36,8 @@
       assert(conversationHistory.some(entry => entry.speaker !== "You"), "NPC responses did not restore with adventure");
       pass("Conversation history restores with Continue, including player topics and NPC responses");
       const record = await adventures.store.get(2);
-      const exported = window.UltimatumAdventureStore.encode(record.current);
-      const decoded = window.UltimatumAdventureStore.decode(exported);
+      const exported = window.UltimatumSaveStore.encode(record.current);
+      const decoded = window.UltimatumSaveStore.decode(exported);
       assert(decoded.files["conversations.json"], "Export omits conversation history");
       pass("Save export/import preserves conversation history");
     } else {

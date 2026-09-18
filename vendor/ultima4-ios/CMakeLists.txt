@@ -182,7 +182,7 @@ if(NOT ZU4_ACCOUNT_UI)
     set(ZU4_ACCOUNT_UI "${CMAKE_SOURCE_DIR}/../../clients/web/dist")
 endif()
 add_custom_command(TARGET zu4 POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:zu4>/accounts")
-foreach(file cloud.html cloud.css cloud-sdk.js cloud-sdk.js.LEGAL.txt cloud-config.js cloud-client.js cloud-ui.js cloud-native.js adventure-store.js game-data.js game-data-manifest.js)
+foreach(file cloud.html cloud.css cloud-sdk.js cloud-sdk.js.LEGAL.txt cloud-config.js cloud-client.js cloud-ui.js cloud-native.js save-store.js game-data.js game-data-manifest.js)
     add_custom_command(TARGET zu4 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${ZU4_ACCOUNT_UI}/${file}" "$<TARGET_BUNDLE_DIR:zu4>/accounts/${file}")
 endforeach()

@@ -39,7 +39,7 @@
     await adventures.action("export",2);
     assert(typeof exported==="string","Web export did not produce backup");
     const text=exported;
-    const decoded=UltimatumAdventureStore.decode(text);
+    const decoded=UltimatumSaveStore.decode(text);
     assert(new TextDecoder().decode(decoded.files["journal-notebook.dat"]).includes("Web round trip ✓"),"Export lost web note");
     assert(decoded.files["conversations.json"],"Export lost conversation log");
     assert((await fetch("/browser.u4save",{method:"POST",body:text})).ok,"Local test artifact was not recorded");

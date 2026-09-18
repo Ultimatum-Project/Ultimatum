@@ -1,0 +1,33 @@
+{
+  "$schema": "../../packages/semantic-session/schemas/engine-session-provider.schema.json",
+  "contractVersion": 1,
+  "gameId": "ultima4",
+  "snapshotSchema": "engine-snapshot-v1",
+  "providers": [
+    {
+      "id": "web-engine-session-v1",
+      "host": "web",
+      "surface": "semantic",
+      "implementation": "clients/web/dist/engine-session.js",
+      "activeWiring": "clients/web/dist/app.js",
+      "entryPoint": "UltimatumEngineSession",
+      "executionModel": "promise-serialized-main-thread",
+      "operations": ["start", "getSnapshot", "subscribe", "dispatch", "requestCheckpoint", "pause", "resume", "quiesce", "shutdown"]
+    },
+    {
+      "id": "native-engine-session-v1",
+      "host": "native",
+      "surface": "lifecycle-compatibility",
+      "implementation": "vendor/ultima4-ios/src/native_engine_session.h",
+      "activeWiring": "vendor/ultima4-ios/src/event_sdl.cpp",
+      "entryPoint": "NativeEngineSession::Session",
+      "executionModel": "serialized-sdl-event-loop",
+      "operations": ["requestCheckpoint", "pause", "resume", "quiesce", "shutdown"]
+    }
+  ],
+  "semantics": {
+    "serializedExecution": true,
+    "lifecycleActionsOnEngineThread": true,
+    "additiveSnapshots": true
+  }
+}

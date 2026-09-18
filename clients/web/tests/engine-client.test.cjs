@@ -134,7 +134,8 @@ test("the web shell is wired to the engine canvas and real panels", () => {
   assert.match(html, /id="sheetBackdrop"/);
   assert.match(html, /class="dpad" role="group" aria-label="Movement D-pad"/);
   assert.match(html, /data-key="1002" data-move="south"/);
-  assert.ok(html.indexOf("engine-client.js") < html.indexOf("app.js"));
+  assert.ok(html.indexOf("engine-client.js") < html.indexOf("engine-session.js"));
+  assert.ok(html.indexOf("engine-session.js") < html.indexOf("app.js"));
   assert.match(app, /engine\/ultimatum-engine\.js/);
   assert.match(app, /engine\/\$\{path\}\?v=\$\{ENGINE_BUILD\}/);
   assert.match(app, /Downloading engine data \(42 MB\)/);
@@ -149,7 +150,7 @@ test("the web shell is wired to the engine canvas and real panels", () => {
   assert.doesNotMatch(engineClient, /analyzePath/);
   assert.doesNotMatch(read("dist/journal-ui.js"), /analyzePath/);
   assert.match(app, /await engine\.persistSaves\(\)/);
-  assert.match(app, /await window\.UltimatumGameData\.validate\(entries\)/);
+  assert.match(app, /await gameDataImporter\.prepare\(record\)/);
   assert.match(app, /new URLSearchParams\(location\.search\).*account/);
   assert.match(app, /adventures\.deferUntilAccountClose\(showRequiredData\)/);
   assert.match(app, /ui\.dataAccount\.addEventListener\("click", openAccountFromData\)/);
@@ -184,7 +185,7 @@ test("the web shell is wired to the engine canvas and real panels", () => {
   assert.match(app, /equipmentChoices\(member, 1\)/);
   assert.match(engineClient, /zu4_web_activate_primary_action/);
   assert.match(engineClient, /zu4_web_tap_world/);
-  assert.match(app, /indexedDB\.open/);
+  assert.match(read("dist/library-store.js"), /indexedDB\.open|this\.indexedDB\.open/);
   assert.match(app, /fetchZip/);
   assert.match(app, /WORLD_VIEW = \{ x: 8, y: 8, width: 176, height: 176 \}/);
   assert.match(app, /canvas: engineCanvas/);
@@ -324,12 +325,13 @@ test("signed-in account game-data inspection waits for the runtime filesystem", 
   const waitSource=app.match(/async function waitForRuntimeFilesystem\(\) \{[\s\S]*?^\}/m)[0];
   const gameDataSource=app.match(/async function localGameDataForCloud\(\) \{[\s\S]*?^\}/m)[0];
   let extracted=false;
+  const engine={module:null,extractGameZip(){extracted=true;return [{name:"AVATAR.EXE",data:new ArrayBuffer(3)}];}};
   const sandbox={
-    engine:{module:null,extractGameZip(){extracted=true;return [{name:"AVATAR.EXE",data:new ArrayBuffer(3)}];}},
-    libraryGet:async()=>({kind:"zip",data:new ArrayBuffer(4)}),
+    engine,
+    library:{get:async()=>({kind:"zip",data:new ArrayBuffer(4)})},
+    gameDataImporter:{prepare:async saved=>({verified:{profile:"ultima4-dos",verification:{label:"English DOS\/EGA"},files:engine.extractGameZip(saved.data)}})},
     MAX_ZIP_BYTES:128*1024*1024,
     window:{UltimatumGameData:{
-      validate:async entries=>({profile:"ultima4-dos",verification:{label:"English DOS/EGA"},files:entries}),
       encodePackage:()=>"verified-package",
     }},
   };

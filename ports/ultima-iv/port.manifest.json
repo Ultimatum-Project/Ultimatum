@@ -1,0 +1,40 @@
+{
+  "$schema": "../../packages/adapter-sdk/schemas/port-descriptor.schema.json",
+  "schemaVersion": 1,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "adapterApiRange": ">=0.1.0 <0.2.0",
+  "portVersion": "0.1.0",
+  "engine": {
+    "id": "xu4",
+    "version": "1.0-git",
+    "upstreamUrl": "https://github.com/xu4-engine/u4",
+    "sourceUrl": "https://github.com/Ultimatum-Project/Ultimatum/tree/main/vendor/ultima4-ios",
+    "licenseId": "GPL-2.0-or-later"
+  },
+  "editions": [
+    {
+      "id": "dos-english-ega",
+      "label": "Ultima IV DOS English (EGA)",
+      "importProfileIds": ["u4-dos-english-ega-v1"]
+    }
+  ],
+  "capabilities": {
+    "offline": true,
+    "saves": "managed",
+    "mods": "files",
+    "multiplayer": "none",
+    "rendering": ["canvas2d", "native"],
+    "threads": "none",
+    "pointerLock": "none",
+    "input": ["keyboard", "mouse", "touch", "text"],
+    "cloudSaveEligible": true,
+    "supportsPause": false,
+    "supportsSuspend": true,
+    "supportsMultipleProfiles": true,
+    "supportsMultipleSurfaces": false
+  },
+  "actionsSchemaVersion": 1,
+  "settingsSchemaVersion": 3,
+  "saveSchemaVersion": 1
+}

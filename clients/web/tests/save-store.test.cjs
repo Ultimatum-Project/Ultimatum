@@ -4,17 +4,49 @@ const vm=require("node:vm");
 const path=require("node:path");
 const test=require("node:test");
 const sandbox={Uint8Array,btoa,atob};
-vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../dist/adventure-store.js"),"utf8"),sandbox);
-const Store=sandbox.UltimatumAdventureStore;
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../dist/save-store.js"),"utf8"),sandbox);
+const Store=sandbox.UltimatumSaveStore;
 const files={"party.sav":new Uint8Array([1,2,3]),"monsters.sav":new Uint8Array([4,5]),"topics.txt":new Uint8Array([65,10]),"journal-notebook.dat":new TextEncoder().encode('U4NOTEBOOK 1 2\nN 1 "" "A personal note"\n'),"conversations.json":new Uint8Array([91,93])};
-test("Adventure packages preserve classic saves and optional metadata byte-for-byte",()=>{
+test("Save packages preserve classic saves and optional metadata byte-for-byte",()=>{
   const text=Store.encode({files,savedAt:123},"Test journey");
   const decoded=Store.decode(text);
   assert.equal(decoded.label,"Test journey");
   for(const name of Object.keys(files)) assert.deepEqual(decoded.files[name],files[name]);
   assert.equal(Store.fingerprint(decoded.files),Store.fingerprint(files));
   const packageData=JSON.parse(text);
+  assert.equal(packageData.format,"ultimatum-adventure","the .u4save v1 wire identifier stays compatible");
   assert.equal(packageData.version,1);assert.equal(packageData.game,"ultima4");
+});
+test("SaveStore keeps the existing IndexedDB location while exposing the new API name",()=>{
+  const source=fs.readFileSync(path.join(__dirname,"../dist/save-store.js"),"utf8");
+  assert.match(source,/indexedDB\.open\("ultimatum-adventures-v1", 1\)/);
+  assert.equal(typeof sandbox.UltimatumSaveStore,"function");
+  assert.equal(sandbox.UltimatumAdventureStore,undefined);
+});
+test("SaveStore v1 projects legacy slots through record and generation operations",async()=>{
+  const fingerprint=Store.fingerprint(files);
+  const record={slot:2,label:"Hero",current:{files,fingerprint,summary:{moves:7},savedAt:10},previous:{files,fingerprint:"older",summary:{moves:6},savedAt:9}};
+  const store=new Store();
+  store.transact=(_mode,operation)=>new Promise(resolve=>{
+    const objectStore={getAll(){const request={result:[record]};queueMicrotask(()=>request.onsuccess());return request;}};
+    operation(objectStore,resolve);
+  });
+  const [projected]=await store.list("ultima4","default");
+  assert.equal(store.contractVersion,"1");assert.equal(store.id,"web-indexeddb-save-store-v1");
+  assert.equal(projected.recordId,"ultima4/default/2");
+  assert.match(projected.currentGenerationId,/^ultima4\/default\/2#/);
+  store.get=async()=>record;
+  assert.equal((await store.getGeneration(projected.currentGenerationId)).summary.moves,7);
+  let published;
+  store.commit=async(...args)=>(published=args,{slot:2,current:record.current});
+  await store.publish({recordId:projected.recordId,files,summary:{moves:8},label:"Hero"},projected.currentGenerationId);
+  assert.equal(published[0],2);assert.equal(published[4],fingerprint);
+  let restored;
+  store.restorePrevious=async(...args)=>(restored=args,record);
+  await store.restore(projected.previousGenerationId,projected.currentGenerationId);
+  assert.deepEqual(restored,[2,fingerprint,"older"]);
+  const quarantined=await store.quarantine({files:{"party.sav":files["party.sav"]}},"incomplete legacy save");
+  assert.equal(quarantined.quarantined,true);
 });
 test("Packages reject corruption, unknown paths, duplicates, missing files and unknown versions",()=>{
   const original=JSON.parse(Store.encode({files,savedAt:123},"Test"));
@@ -73,6 +105,6 @@ test("Journal updates reject stale slots, gameplay writes, and invalid byte payl
   const {store,current}=journalStore(record);
   await assert.rejects(store.updateJournal(1,{"topics.txt":new Uint8Array([1])},"stale"),/another tab/);
   await assert.rejects(store.updateJournal(1,{"party.sav":new Uint8Array([1])},record.current.fingerprint),/Only journal/);
-  await assert.rejects(store.updateJournal(1,{"topics.txt":"invalid"},record.current.fingerprint),/Invalid adventure/);
+  await assert.rejects(store.updateJournal(1,{"topics.txt":"invalid"},record.current.fingerprint),/Invalid saved-game/);
   assert.deepEqual(current(),record);
 });

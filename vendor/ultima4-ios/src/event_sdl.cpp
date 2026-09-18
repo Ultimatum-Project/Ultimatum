@@ -17,49 +17,62 @@
 #include "u4_sdl.h"
 #include "video.h"
 #ifdef ZU4_IOS
-#include "mobile_lifecycle.h"
+#include "native_engine_session.h"
 #include "zu4_ios_ui.h"
 #include "topic_panel.h"
 #include <stdint.h>
 #endif
 
 #ifdef ZU4_IOS
-static MobileLifecycle::State mobileLifecycle;
-static bool handleMobileLifecycle(const SDL_Event &event) {
-    MobileLifecycle::Action action = MobileLifecycle::NONE;
-    switch (event.type) {
-    case SDL_APP_WILLENTERBACKGROUND:
-        action = mobileLifecycle.accept(MobileLifecycle::WILL_ENTER_BACKGROUND);
-        break;
-    case SDL_APP_DIDENTERBACKGROUND:
-        action = mobileLifecycle.accept(MobileLifecycle::DID_ENTER_BACKGROUND);
-        break;
-    case SDL_APP_WILLENTERFOREGROUND:
-        action = mobileLifecycle.accept(MobileLifecycle::WILL_ENTER_FOREGROUND);
-        break;
-    case SDL_APP_DIDENTERFOREGROUND:
-        action = mobileLifecycle.accept(MobileLifecycle::DID_ENTER_FOREGROUND);
-        break;
-    default: return false;
-    }
-    if (action == MobileLifecycle::CHECKPOINT) {
-        // Stop producing timer events before the synchronous checkpoint. Any
-        // event already queued is filtered below while the app is inactive.
+static NativeEngineSession::Session nativeEngineSession;
+
+static void applyNativeSessionTransition(const NativeEngineSession::Transition &transition) {
+    using namespace NativeEngineSession;
+    if (includes(transition.actions, PAUSE))
         eventHandler->getTimer()->stop();
+    if (includes(transition.actions, CHECKPOINT))
         zu4_mobile_lifecycle_background();
-    } else if (action == MobileLifecycle::RESUME) {
+    if (includes(transition.actions, RESUME)) {
+        // Preserve the established ordering: reset idle time before timer
+        // production resumes, then let the engine refresh its native UI.
         if (c) c->lastCommandTime = time(NULL);
         eventHandler->getTimer()->start();
         zu4_mobile_lifecycle_foreground();
     }
-    return true;
+    // SDL_QUIT consumes SHUTDOWN after the ordered durability actions above.
+}
+
+static bool handleMobileLifecycle(const SDL_Event &event) {
+    using namespace NativeEngineSession;
+    Transition transition{false, NONE, nativeEngineSession.state()};
+    switch (event.type) {
+    case SDL_APP_WILLENTERBACKGROUND:
+        transition = nativeEngineSession.handle(LifecycleEvent::WILL_ENTER_BACKGROUND);
+        break;
+    case SDL_APP_DIDENTERBACKGROUND:
+        transition = nativeEngineSession.handle(LifecycleEvent::DID_ENTER_BACKGROUND);
+        break;
+    case SDL_APP_WILLENTERFOREGROUND:
+        transition = nativeEngineSession.handle(LifecycleEvent::WILL_ENTER_FOREGROUND);
+        break;
+    case SDL_APP_DIDENTERFOREGROUND:
+        transition = nativeEngineSession.handle(LifecycleEvent::DID_ENTER_FOREGROUND);
+        break;
+    default: return false;
+    }
+    applyNativeSessionTransition(transition);
+    return transition.handled;
 }
 
 static bool mobileInputBlocked(const SDL_Event &event) {
-    if (!mobileLifecycle.blocksInput()) return false;
+    if (!nativeEngineSession.blocksInput()) return false;
     return event.type == SDL_KEYDOWN || event.type == SDL_KEYUP ||
         (event.type == SDL_USEREVENT &&
          (event.user.code == 0 || event.user.code == ZU4_IOS_ACTION_EVENT));
+}
+
+static void shutdownNativeEngineSession() {
+    applyNativeSessionTransition(nativeEngineSession.shutdown());
 }
 #endif
 
@@ -345,6 +358,9 @@ void EventHandler::sleep(unsigned int usec) {
 				}
 				break;
 			case SDL_QUIT:
+			#ifdef ZU4_IOS
+				shutdownNativeEngineSession();
+			#endif
 				::exit(0);
 				break;
 			}
@@ -405,6 +421,9 @@ void EventHandler::run() {
 				break;
 
 			case SDL_QUIT:
+			#ifdef ZU4_IOS
+				shutdownNativeEngineSession();
+			#endif
 				::exit(0);
 				break;
 			}

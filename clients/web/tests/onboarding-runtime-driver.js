@@ -11,7 +11,7 @@
     const start=Date.now();while(Date.now()-start<timeout) {const value=await predicate();if(value) return value;await new Promise(resolve=>setTimeout(resolve,100));}
     throw Error(message);
   };
-  const client=new window.UltimatumEngineClient(()=>window.Module),store=new window.UltimatumAdventureStore();
+  const client=new window.UltimatumEngineClient(()=>window.Module),store=new window.UltimatumSaveStore();
   const button=(action,slot)=>document.querySelector(`[data-adventure-action="${action}"][data-slot="${slot}"]`);
   const state=()=>window.Module?.ccall && document.querySelector('#engineStatus').hidden ? client.snapshot() : null;
   const option=value=>document.querySelector(`[data-prompt-value="${CSS.escape(value)}"]`);
@@ -106,7 +106,7 @@
       const observe=event=>{if(event.target.closest('a')?.download?.endsWith('.u4save')) exported=event.target.closest('a').href;};
       document.addEventListener("click",observe);button("export",2).click();
       await wait(()=>exported,"Export did not trigger a backup download");document.removeEventListener("click",observe);
-      const text=await (await fetch(exported)).text(),decoded=window.UltimatumAdventureStore.decode(text);
+      const text=await (await fetch(exported)).text(),decoded=window.UltimatumSaveStore.decode(text);
       assert(client.validateAdventure(decoded.files).moves===pausedMoves,"Export did not contain the selected checkpoint");
       const chooser=document.querySelector('#adventureImport');
       const upload=(content,name)=>{
@@ -114,7 +114,7 @@
         chooser.files=transfer.files;chooser.dispatchEvent(new Event("change"));
       };
       button("import",3).click();upload(text,"backup.u4save");
-      await wait(async()=> (await store.get(3))?.current?.fingerprint===window.UltimatumAdventureStore.fingerprint(decoded.files),"Backup import did not finish");
+      await wait(async()=> (await store.get(3))?.current?.fingerprint===window.UltimatumSaveStore.fingerprint(decoded.files),"Backup import did not finish");
       assert((await store.get(3)).current.fingerprint===(await store.get(2)).current.fingerprint,"Backup round trip changed bytes");
       await wait(()=>button("import",3) && !button("import",3).disabled,"Import did not finish updating controls");
       pass("UI export/import round-trips the real save into another slot");
@@ -135,8 +135,8 @@
       await openMenu();await wait(()=>option("adventures") && !option("adventures").disabled,"Menu did not reopen");option("adventures").click();
       await wait(()=>document.querySelector('#adventureDialog').open && button("export",2) && !button("export",2).disabled,"Metadata manager did not open");
       exported=null;document.addEventListener("click",observe);button("export",2).click();await wait(()=>exported,"Metadata export did not download");document.removeEventListener("click",observe);
-      const metadataText=await (await fetch(exported)).text(),metadataDecoded=window.UltimatumAdventureStore.decode(metadataText);
-      assert(window.UltimatumAdventureStore.fingerprint(metadataDecoded.files)===metadataFingerprint,"Metadata export changed bytes");
+      const metadataText=await (await fetch(exported)).text(),metadataDecoded=window.UltimatumSaveStore.decode(metadataText);
+      assert(window.UltimatumSaveStore.fingerprint(metadataDecoded.files)===metadataFingerprint,"Metadata export changed bytes");
       button("import",3).click();
       const classicTransfer=new DataTransfer();
       for(const [name,bytes] of Object.entries(metadataDecoded.files)) classicTransfer.items.add(new File([bytes],name.toUpperCase()));
@@ -152,7 +152,7 @@
       assert((await store.get(3)).current.fingerprint===protectedFingerprint,"Failed import replaced the slot");
       pass("Damaged backup is rejected without replacing a good checkpoint");
       // Real IndexedDB concurrency guard; scoped to a test-owned inactive slot.
-      const first=await store.get(3),other=new window.UltimatumAdventureStore();
+      const first=await store.get(3),other=new window.UltimatumSaveStore();
       let aborted=false;
       try {await store.transact("readwrite",(objectStore,done,transaction)=>{objectStore.put({...first,label:"Must not publish"});transaction.abort();});} catch {aborted=true;}
       assert(aborted && (await store.get(3)).label===first.label,"Aborted storage transaction damaged the slot");
@@ -179,20 +179,20 @@
       await wait(async()=> !(await store.get(3)),"Confirmed delete did not clear the slot");
       await wait(()=>!document.querySelector('#adventureTitleButton').disabled,"Delete did not finish updating controls");
       pass("Delete requires confirmation and affects only the selected inactive slot");
-      const beforeFailure=await store.get(2),originalCommit=window.UltimatumAdventureStore.prototype.commit;
+      const beforeFailure=await store.get(2),originalCommit=window.UltimatumSaveStore.prototype.commit;
       let injectFailure=true;
-      window.UltimatumAdventureStore.prototype.commit=function(...args) {
+      window.UltimatumSaveStore.prototype.commit=function(...args) {
         if(args[0]===2 && injectFailure) {injectFailure=false;return Promise.reject(new DOMException("Injected storage failure","QuotaExceededError"));}
         return originalCommit.apply(this,args);
       };
       document.querySelector('#adventureSaveNow').click();
       await wait(()=>document.querySelector('#toast').textContent.includes("Save storage failed"),"Storage failure was reported as a successful save");
-      window.UltimatumAdventureStore.prototype.commit=originalCommit;
+      window.UltimatumSaveStore.prototype.commit=originalCommit;
       assert((await store.get(2)).current.fingerprint===beforeFailure.current.fingerprint,"Failed storage replaced the published checkpoint");
       await openMenu();await wait(()=>option("adventures") && !option("adventures").disabled,"Recovery menu did not open");option("adventures").click();
       await wait(()=>document.querySelector('#adventureDialog').open && !document.querySelector('#adventureExportPending').hidden && !document.querySelector('#adventureExportPending').disabled,"Unstored checkpoint recovery action missing");
       exported=null;document.addEventListener("click",observe);document.querySelector('#adventureExportPending').click();await wait(()=>exported,"Emergency backup did not download");document.removeEventListener("click",observe);
-      const emergency=window.UltimatumAdventureStore.decode(await (await fetch(exported)).text());
+      const emergency=window.UltimatumSaveStore.decode(await (await fetch(exported)).text());
       assert(client.validateAdventure(emergency.files).name==="WebHero","Emergency export was not a valid engine checkpoint");
       pass("Injected storage failure keeps the good slot and offers a valid emergency export before reload");
       sessionStorage.setItem("onboarding-phase","reload");sessionStorage.setItem("onboarding-results",JSON.stringify(results));
@@ -206,7 +206,7 @@
       button("continue",2).click();
       await wait(()=>state()?.ready && state().inputMode==="command","Continue did not restore the engine");
       assert(state().party[0].name==="WebHero" && state().moves===Number(sessionStorage.getItem("onboarding-moves")),"Continue restored the wrong adventure or moves");
-      assert(window.UltimatumAdventureStore.fingerprint(client.readAdventureFiles())===(await store.get(2)).current.fingerprint,"Continue dropped saved metadata");
+      assert(window.UltimatumSaveStore.fingerprint(client.readAdventureFiles())===(await store.get(2)).current.fingerprint,"Continue dropped saved metadata");
       assert((await store.get(1)).current.fingerprint===sessionStorage.getItem("onboarding-seed"),"Full lifecycle changed Slot 1");
       pass("Reload returns to title; Continue restores the selected Avatar, moves and renamed slot");
       sessionStorage.removeItem("onboarding-phase");sessionStorage.removeItem("onboarding-results");

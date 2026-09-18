@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/engine-snapshot-v1.schema.json",
+  "title": "Ultimatum engine snapshot v1",
+  "type": "object",
+  "required": ["contractVersion", "ready", "inputMode", "capabilities", "prompt"],
+  "properties": {
+    "contractVersion": { "const": 1 },
+    "ready": { "type": "boolean" },
+    "inputMode": { "type": "string", "minLength": 1 },
+    "capabilities": { "type": "object" },
+    "prompt": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string" },
+        "id": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

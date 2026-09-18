@@ -108,7 +108,7 @@ bool JournalNotebook::save(const std::string &path) const {
 #else
     // Emscripten fd_sync unwinds through Asyncify, which cannot be entered
     // from a journal edit while the engine is already awaiting an event.
-    // Web publishes these MEMFS bytes atomically via AdventureStore's
+    // Web publishes these MEMFS bytes atomically via SaveStore's
     // IndexedDB transaction, then mirrors IDBFS asynchronously in JavaScript.
 #endif
     if (close(fd) != 0) ok = false;

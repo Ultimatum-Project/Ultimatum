@@ -2,9 +2,9 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {webcrypto}=require('node:crypto');
 const context={Uint8Array,TextEncoder,crypto:webcrypto,btoa,atob,URL,AbortController,setTimeout,clearTimeout};context.window=context;
 context.UltimatumGameData={decodePackage:async text=>{const value=JSON.parse(text);if(value.format!=="ultimatum-game-data")throw Error("Unsupported cloud game-data package.");return value;}};
-vm.runInNewContext(fs.readFileSync(require.resolve('../dist/adventure-store.js'),'utf8'),context);
+vm.runInNewContext(fs.readFileSync(require.resolve('../dist/save-store.js'),'utf8'),context);
 vm.runInNewContext(fs.readFileSync(require.resolve('../dist/cloud-client.js'),'utf8'),context);
-const Store=context.UltimatumAdventureStore,Cloud=context.UltimatumCloudClient;
+const Store=context.UltimatumSaveStore,Cloud=context.UltimatumCloudClient;
 const text=Store.encode({files:{'party.sav':new Uint8Array([1]),'monsters.sav':new Uint8Array([2]),'map-pins.dat':new Uint8Array([3]),'journal-notebook.dat':new Uint8Array([4])}},'Fixture');
 function fixture(){
  let user={id:'owner',email:'fixture@example.invalid'},row=null,rpcError=null;const calls=[];

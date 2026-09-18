@@ -16,9 +16,15 @@ in public packages.
 - [`vendor/ultima4-ios`](vendor/ultima4-ios/) — xu4-derived C/C++ engine,
   shared gameplay semantics, Objective-C++ iOS host, and native tests.
 - [`clients/web`](clients/web/) — Emscripten/WebAssembly engine host,
-  responsive gameplay shell, importer, local adventure store, and cloud client.
+  responsive gameplay shell, importer, local save store, and cloud client.
 - [`clients/site`](clients/site/) — public homepage and the Cloudflare package
   that publishes the game under `/play/` with corresponding source and notices.
+- [`packages`](packages/) — versioned platform contracts being extracted around
+  proven behavior, including port descriptors, semantic sessions, imports, and
+  logical storage mappings.
+- [`ports/ultima-iv`](ports/ultima-iv/) — the first schema-validated port
+  descriptor; implementation remains in its established locations during the
+  Phase 0.5 compatibility migration.
 - [`supabase`](supabase/) — migrations and SQL tests for accounts, immutable
   resource history, quota enforcement, administration, and feedback.
 - [`docs`](docs/) — architecture, design specifications, implementation status,
@@ -114,4 +120,3 @@ generated engine or public package.
   establish feature completion.
 - Keep production, QA, and local browser origins isolated. Verify both backend
   migration state and the deployed frontend before reporting cloud availability.
-

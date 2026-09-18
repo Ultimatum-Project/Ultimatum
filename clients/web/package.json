@@ -1,0 +1,22 @@
+{
+  "name": "ultimatum-web-slice",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/prepare-local-client.mjs && node scripts/run-shell.mjs serve-lan.sh",
+    "configure:local": "node scripts/prepare-local-client.mjs",
+    "build:engine": "node scripts/run-shell.mjs build-engine.sh",
+    "import:game-data": "node scripts/run-shell.mjs import-game-data.sh",
+    "import:vga": "node scripts/run-shell.mjs import-vga-upgrade.sh",
+    "check": "node --check scripts/prepare-local-client.mjs && node --check dist/game-data.js && node --check dist/game-data-manifest.js && node --check dist/adventure-store.js && node --check dist/adventure-ui.js && node --check dist/journal-ui.js && node --check dist/engine-client.js && node --check dist/app.js && node --check dist/cloud-client.js && node --check dist/cloud-ui.js && node --check dist/cloud-native.js && node --check tests/onboarding-runtime-driver.js && node --check tests/parity-runtime-driver.js && node --check tests/lifecycle-runtime-driver.js && node --check tests/cloud-runtime-driver.js && node --check tests/feedback-runtime-driver.js && node --check tests/account-race-runtime-driver.js",
+    "test": "node scripts/run-shell.mjs run-node-tests.sh",
+    "test:runtime:build": "node scripts/run-shell.mjs build-runtime-tests.sh",
+    "test:runtime:serve": "node scripts/prepare-local-client.mjs && node scripts/run-shell.mjs serve-runtime-tests.sh",
+    "build:cloud": "node scripts/build-cloud.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

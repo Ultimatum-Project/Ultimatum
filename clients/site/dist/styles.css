@@ -1,0 +1,61 @@
+:root { color-scheme: dark; --ink: #f2eee4; --muted: #b5c0b8; --gold: #e9c27a; --line: #405249; --ground: #101916; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+body { margin: 0; background: var(--ground); color: var(--ink); }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .25em; }
+a:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; }
+.page { max-width: 1260px; margin: auto; padding: 0 4rem; }
+.skip-link { position: absolute; top: -5rem; left: 1rem; padding: 1rem; background: var(--ink); color: var(--ground); z-index: 2; }
+.skip-link:focus { top: 1rem; }
+.masthead { min-height: 116px; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border-bottom: 1px solid var(--line); }
+.wordmark { display: flex; align-items: center; gap: 1rem; text-decoration: none; font-family: Georgia, serif; letter-spacing: .15em; font-size: 1.25rem; }
+.wordmark small { display: block; font: .875rem ui-sans-serif, system-ui, sans-serif; letter-spacing: .28em; margin-top: .4rem; color: var(--muted); }
+.monogram { display: grid; place-items: center; width: 3rem; height: 3rem; border: 1px solid var(--gold); color: var(--gold); font: 2rem Georgia, serif; letter-spacing: 0; }
+nav { display: flex; gap: 1.7rem; font-size: .875rem; flex-wrap: wrap; }
+nav a { text-decoration: none; padding: .7rem 0; }
+nav a:hover, .text-link:hover { color: var(--gold); }
+.nav-play { border: 1px solid var(--gold); border-radius: 2px; padding: .7rem 1rem; color: var(--gold); }
+.nav-play:hover { background: var(--gold); color: #152019; }
+.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 5rem; align-items: center; padding: 6rem 0 5.5rem; }
+.eyebrow { color: var(--gold); font-size: .875rem; font-weight: 600; letter-spacing: .15em; line-height: 1.7; margin: 0 0 1.5rem; }
+h1, h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+h1 { font-size: clamp(3rem, 5.6vw, 5rem); letter-spacing: -.04em; line-height: 1.08; margin: 0 0 1.7rem; }
+h1 em { color: var(--gold); }
+.lead { font-size: 1.125rem; line-height: 1.8; max-width: 32rem; color: var(--muted); margin: 0 0 2rem; }
+.button { display: inline-flex; justify-content: space-between; gap: 3rem; align-items: center; background: var(--gold); color: #152019; padding: 1rem 1.4rem; min-height: 52px; font-weight: 650; text-decoration: none; }
+.button:hover { background: #f5d69c; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: stretch; }
+.hero-link { align-self: center; margin-left: .5rem; }
+.account-button { margin-top: .5rem; }
+.caption { font-size: .875rem; color: var(--muted); line-height: 1.7; margin: 1rem 0 0; }
+.game-card { border: 1px solid #6e7856; padding: 2rem; background: #1b2920; box-shadow: 12px 12px 0 #0a120e; }
+.card-top { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.card-top .eyebrow { margin: 0; }
+.edition { font: 3.8rem Georgia, serif; color: var(--gold); }
+.game-card h2 { font-size: 3.8rem; letter-spacing: -.03em; margin: 2rem 0 .35rem; }
+.game-subtitle { font: 1.5rem Georgia, serif; margin: 0; }
+.rule { height: 1px; background: #56654e; margin: 1.8rem 0; }
+.game-card p:not(.game-subtitle), .details-grid p:not(.eyebrow), .project-copy p { color: var(--muted); line-height: 1.8; }
+dl { margin: 1.8rem 0; }
+dl div { border-bottom: 1px solid #40503e; padding: .85rem 0; }
+dt { font-size: .875rem; color: var(--gold); margin-bottom: .3rem; }
+dd { margin: 0; line-height: 1.5; }
+.text-link { display: inline-block; padding: .6rem 0; font-size: 1rem; }
+.project-section { display: grid; grid-template-columns: 1fr 1fr; column-gap: 5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
+.project-section > .eyebrow { grid-column: 1 / -1; }
+.project-section h2 { font-size: 2.8rem; line-height: 1.15; margin: 0; letter-spacing: -.025em; }
+.project-copy p:first-child { margin-top: 0; }
+.project-copy p:last-child { margin-bottom: 0; }
+.details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
+.details-grid h2 { font-size: 2rem; margin: 0 0 1rem; }
+.details-grid .eyebrow { margin-bottom: 1rem; }
+.principles { margin-bottom: 0; }
+.principles div:first-child { padding-top: 0; }
+.principles dd { color: var(--muted); line-height: 1.7; }
+footer { border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 2rem 0 3rem; color: var(--muted); }
+.footer-brand { text-decoration: none; color: var(--ink); font-family: Georgia, serif; font-size: 1.125rem; }
+footer p { margin: 0; text-align: right; }
+footer small { grid-column: 1 / -1; font-size: .875rem; line-height: 1.7; }
+@media (max-width: 900px) { .page { padding: 0 2rem; } .hero, .project-section, .details-grid { gap: 2.5rem; } h1 { font-size: 3.7rem; } .hero { padding: 4rem 0; } .game-card { padding: 1.5rem; } }
+@media (max-width: 650px) { .page { padding: 0 1.25rem; } .masthead { align-items: flex-start; flex-direction: column; gap: .6rem; padding: 1.5rem 0 1rem; } nav { gap: .55rem 1.1rem; align-items: center; } .nav-play { flex-basis: 100%; text-align: center; margin-top: .25rem; } .hero, .project-section, .details-grid { grid-template-columns: 1fr; } .hero { gap: 3rem; padding: 3rem 0; } .hero-actions { flex-direction: column; } .hero-actions .button { width: 100%; } .hero-link { align-self: flex-start; margin-left: 0; } h1 { font-size: clamp(2.8rem, 11vw, 4rem); } .game-card { margin-right: 12px; } .game-card h2 { margin-top: 1.2rem; } .project-section, .details-grid { padding: 2.5rem 0; gap: 1.8rem; } .project-section > .eyebrow { margin: 0; } .project-section h2 { font-size: 2.5rem; } .details-grid section + section { border-top: 1px solid var(--line); padding-top: 2.5rem; } footer { grid-template-columns: 1fr; } footer p { text-align: left; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

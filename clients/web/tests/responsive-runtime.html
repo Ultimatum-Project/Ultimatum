@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Ultimatum responsive runtime fixture</title>
+<style>body { margin: 0; background: #080d16; } iframe { display: block; border: 0; }</style>
+<iframe title="Phone-sized Ultimatum runtime"></iframe>
+<script>
+  // A real frame viewport exercises media queries even when the host browser
+  // cannot override its desktop viewport. Never loads the user's LAN origin.
+  const params = new URL(location.href).searchParams;
+  const landscape = params.get("layout") === "landscape";
+  const frame = document.querySelector("iframe");
+  frame.width = landscape ? 844 : 393;
+  frame.height = landscape ? 390 : 700;
+  const suite = ["hud", "menu", "walk", "conversation", "onboarding", "parity", "lifecycle", "review"].includes(params.get("suite")) ? params.get("suite") : "hud";
+  frame.src = suite === "review" ? "/index.html" : "/?" + (suite === "conversation" ? "suite=1&" : suite + "_suite=1&") + (params.has("case") ? "case=" + encodeURIComponent(params.get("case")) : "");
+</script>

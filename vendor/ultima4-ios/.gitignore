@@ -1,0 +1,11 @@
+debug/
+ultima4/
+*.o
+u4upgrad.zip
+ultima4.zip
+u4
+
+# iOS build output
+ios/build/
+u4data/
+ultima4/

@@ -1,0 +1,11 @@
+{
+  "name": "Ultimatum — Ultima IV",
+  "short_name": "Ultimatum IV",
+  "description": "Play a locally installed Ultima IV adventure with the Ultimatum engine.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080d16",
+  "theme_color": "#080d16",
+  "orientation": "any"
+}

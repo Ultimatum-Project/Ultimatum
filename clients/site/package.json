@@ -1,0 +1,11 @@
+{
+  "name": "ultimatum-project-site",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-public.mjs --debug-tools",
+    "build:qa": "node scripts/build-public.mjs --qa-debug",
+    "dev": "python3 -m http.server 4180 --bind 0.0.0.0 --directory build",
+    "check": "node --check scripts/build-public.mjs && node --check scripts/cloud-environments.mjs && node --check dist/public-loader.js && node --check dist/admin/admin.js",
+    "test": "node scripts/run-tests.mjs"
+  }
+}

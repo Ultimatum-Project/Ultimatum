@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080d16" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="The engine-backed Ultimatum web client." />
+    <title>Ultimatum — Ultima IV</title>
+    <link rel="stylesheet" href="app.css?v=20260917-cloud-mobile11" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="cloud.css?v=20260917-cloud-parity1">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand" aria-label="Ultimatum, Ultima IV">
+          <span class="brand-mark" aria-hidden="true"><i>IV</i></span>
+          <span class="brand-name">ULTIMATUM</span>
+          <span class="build-label">LIVE ENGINE</span>
+        </div>
+        <div class="world-meta">
+          <span><b id="headerLocation">Awakening…</b><small id="headerContext">Loading Britannia</small></span>
+          <span><b id="windValue">—</b><small>Wind</small></span>
+          <span><b id="resourceValue">—</b><small>Food · Gold</small></span>
+          <span class="desktop-moves"><b id="headerTurnCount">—</b><small>Moves</small></span>
+        </div>
+        <div class="header-actions">
+          <button class="quiet-button" id="mapButton" type="button" disabled>Map</button>
+          <button class="quiet-button" id="menuButton" type="button" disabled>Menu</button>
+          <button class="quiet-button" id="journalButton" data-open-journal type="button" disabled>Journal</button>
+          <button class="quiet-button feedback-button" id="feedbackButton" type="button">Feedback</button>
+          <button class="quiet-button" id="dataButton" type="button">Game data</button>
+          <button class="quiet-button" id="videoButton" type="button" disabled>VGA unavailable</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="game-column" aria-label="Game world">
+          <div class="map-toolbar">
+            <div class="location-summary"><span class="eyebrow" id="locationContext">THE WORLD OF BRITANNIA</span><h1 id="locationName">Loading journey</h1><p id="mobileWorldStatus">Preparing Britannia…</p></div>
+            <div class="map-tools"><button id="minimapButton" type="button" disabled aria-label="Open exploration map"><canvas id="minimapCanvas" width="33" height="33" aria-hidden="true"></canvas><span>Map</span></button><div class="turn-counter"><span>MOVES</span><b id="turnCount">—</b></div></div>
+          </div>
+
+          <div class="world-stage" id="worldStage">
+            <canvas id="worldCanvas" width="176" height="176" tabindex="0" aria-label="Ultima IV game world"></canvas>
+            <div id="combatOverlay" class="combat-overlay" aria-label="Selectable combat targets"></div>
+            <div id="mobileWorldLog" class="mobile-world-log" aria-hidden="true"></div>
+            <div class="engine-status" id="engineStatus"><i></i><span>Preparing the WebAssembly engine…</span></div>
+          </div>
+
+          <div id="conversationPlaceholder" hidden aria-hidden="true"></div>
+          <section class="conversation-dock" aria-label="Conversation and command output">
+            <div class="conversation-copy">
+              <div class="prompt-heading"><span class="eyebrow" id="promptLabel">LATEST EVENT</span><button type="button" data-open-journal class="prompt-journal" hidden>Journal</button></div>
+              <p id="latestMessage">The journey is being restored from the local game data.</p>
+              <canvas id="peerMapCanvas" hidden aria-label="Peer map with party marked in gold"></canvas>
+            </div>
+            <form class="conversation-form" id="conversationForm" hidden>
+              <label class="sr-only" for="conversationInput">Reply or conversation topic</label>
+              <input id="conversationInput" autocomplete="off" maxlength="32" placeholder="Type a topic or answer…" />
+              <button id="conversationSubmit" type="submit">Send</button>
+            </form>
+            <div class="topic-row" id="topicRow" hidden>
+              <button type="submit" form="conversationForm" data-topic="name">Name</button>
+              <button type="submit" form="conversationForm" data-topic="job">Job</button>
+              <button type="submit" form="conversationForm" data-topic="health">Health</button>
+              <button type="submit" form="conversationForm" data-topic="bye">Goodbye</button>
+            </div>
+            <div class="prompt-actions" id="promptActions" aria-label="Prompt choices" hidden></div>
+          </section>
+
+          <nav class="mode-command-bar" id="modeCommandBar" aria-label="Context-specific commands" hidden>
+            <div class="mode-status" id="modeStatus" role="status"></div>
+            <div class="mode-actions" id="combatActions" hidden>
+              <button type="button" data-gameplay-action="16" data-parameter="-1">Previous target</button>
+              <button type="button" data-gameplay-action="16" data-parameter="1">Next target</button>
+              <button type="button" id="combatRepeat" data-gameplay-action="20">Repeat attack</button>
+              <button type="button" id="combatClear" data-gameplay-action="17">Clear</button>
+              <button type="button" id="combatAttack" class="primary-mode-action">Attack</button>
+            </div>
+            <div class="mode-actions" id="dungeonActions" hidden>
+              <button type="button" data-gameplay-action="12">Search</button>
+              <button type="button" data-gameplay-action="13">Light torch</button>
+              <button type="button" id="dungeonView" data-gameplay-action="14">Overhead</button>
+              <button type="button" data-open-map>Floor map</button>
+            </div>
+          </nav>
+
+          <nav class="mobile-control-deck" aria-label="Mobile game controls">
+            <div class="dpad mobile-dpad" role="group" aria-label="Movement D-pad">
+              <button data-key="1001" data-move="north" type="button" aria-label="North">↑</button>
+              <button data-key="1003" data-move="west" type="button" aria-label="West">←</button>
+              <button id="mobileDpadCenter" class="mobile-dpad-center" type="button" hidden>Repeat attack</button>
+              <button data-key="1002" data-move="south" type="button" aria-label="South">↓</button>
+              <button data-key="1004" data-move="east" type="button" aria-label="East">→</button>
+            </div>
+            <div class="mobile-action-grid">
+              <button type="button" data-open-panel="partyPanel" aria-expanded="false">Party</button>
+              <button type="button" data-open-panel="spellsPanel" aria-expanded="false">Spells</button>
+              <button type="button" id="mobileAction3">Journal</button>
+              <button type="button" id="mobileMenuButton" disabled>Menu</button>
+              <button type="button" id="mobileAction5" disabled>Interact</button>
+              <button type="button" id="mobileAction6" disabled>Map</button>
+              <button type="button" id="mobileAction7" disabled>Talk</button>
+              <button type="button" data-key="32">Wait</button>
+            </div>
+          </nav>
+
+          <nav class="command-bar" aria-label="Game commands">
+            <div class="dpad" role="group" aria-label="Movement D-pad" title="Move with arrow keys or WASD. Shift plus a letter uses classic commands.">
+              <button data-key="1001" data-move="north" type="button" aria-label="North">↑</button>
+              <button data-key="1003" data-move="west" type="button" aria-label="West">←</button>
+              <button data-key="1002" data-move="south" type="button" aria-label="South">↓</button>
+              <button data-key="1004" data-move="east" type="button" aria-label="East">→</button>
+            </div>
+            <button class="command primary-command" data-key="116" type="button"><span class="command-icon">✦</span><span><b>Talk</b><small>Then choose direction</small></span><kbd>T</kbd></button>
+            <button class="command" data-key="99" type="button"><span class="command-icon">◇</span><span><b>Cast</b><small>Choose a mixed spell</small></span><kbd>C</kbd></button>
+            <button class="command" id="primaryActionButton" type="button" disabled><span class="command-icon">↳</span><span><b id="primaryActionLabel">Interact</b><small id="primaryActionHint">Nothing to use here</small></span></button>
+            <button class="command" data-key="115" type="button"><span class="command-icon">⌕</span><span><b>Search</b><small>Current tile</small></span><kbd>Shift S</kbd></button>
+            <button class="command" data-key="32" type="button"><span class="command-icon" aria-hidden="true">◷</span><span><b>Wait</b><small>One turn</small></span><kbd>Space</kbd></button>
+          </nav>
+
+        </section>
+
+        <button class="sheet-backdrop" id="sheetBackdrop" type="button" aria-label="Close journey panel" hidden></button>
+        <aside class="side-panel" id="sidePanel" aria-label="Journey information">
+          <div class="side-panel-header">
+            <div class="tabs" role="tablist" aria-label="Information panels">
+              <button role="tab" aria-selected="true" data-panel="partyPanel">Party</button>
+              <button role="tab" aria-selected="false" data-panel="spellsPanel">Spells</button>
+              <button role="tab" aria-selected="false" data-panel="logPanel">Log</button>
+              <button role="tab" aria-selected="false" data-panel="conversationsPanel">Conversation</button>
+            </div>
+            <button class="mobile-sheet-close" id="mobileSheetClose" type="button" aria-label="Close journey panel">×</button>
+          </div>
+
+          <section class="info-panel" id="partyPanel" role="tabpanel">
+            <div class="panel-heading" id="partyHeading"><div><span class="eyebrow">COMPANIONS</span><h2>The party</h2></div><span id="partyCount">0 members</span></div>
+            <div class="party-list" id="partyList"><div class="empty-state">Waiting for party state…</div></div>
+            <section class="party-detail" id="partyDetail" aria-live="polite" hidden>
+              <button class="party-back" id="partyBackButton" type="button">← Party</button>
+              <div id="partyDetailContent"></div>
+            </section>
+          </section>
+
+          <section class="info-panel" id="spellsPanel" role="tabpanel" hidden>
+            <div class="panel-heading"><div><span class="eyebrow">MIXED MAGIC</span><h2>Spells</h2></div><span id="spellCount">0 ready</span></div>
+            <p class="panel-note">Choose a prepared spell. The engine will ask for a caster or direction when required.</p>
+            <div class="spell-list" id="spellList"></div>
+          </section>
+
+          <section class="info-panel" id="logPanel" role="tabpanel" hidden>
+            <div class="panel-heading"><div><span class="eyebrow">RECENT EVENTS</span><h2>Journey log</h2></div></div>
+            <p class="panel-note">Recent actions and game feedback. Lasting discoveries live in the Journal.</p>
+            <div class="message-log" id="messageLog"><div class="empty-state">Engine messages will appear here.</div></div>
+          </section>
+
+          <section class="info-panel" id="conversationsPanel" role="tabpanel" hidden>
+            <div class="conversation-tools"><span class="eyebrow">ACTIVE EXCHANGE</span><button type="button" data-open-journal disabled>Journal</button></div>
+            <div class="message-log" id="conversationHistory" role="log" aria-label="Active exchange, oldest first"><div class="empty-state">No active conversation. Earlier discoveries and transcripts are in the Journal.</div></div>
+            <div id="desktopPromptHost"><p class="panel-note desktop-reply-hint">Talk to someone to begin. Replies stay here; lasting knowledge goes to the Journal.</p></div>
+          </section>
+
+          <footer class="side-footer">
+            <p id="desktopLatestMessage" class="desktop-output" role="status" aria-live="polite"></p>
+            <span><i id="connectionLight"></i><b id="connectionLabel">Starting engine</b></span>
+            <button id="mobileDataButton" type="button">Game data</button>
+            <button id="saveButton" type="button" disabled>Save Game</button>
+          </footer>
+        </aside>
+      </main>
+    </div>
+    <dialog id="journalDialog" class="journal-dialog" aria-labelledby="journalTitle">
+      <header class="journal-toolbar"><button type="button" id="journalBack" hidden>← Back</button><div><span class="eyebrow">THIS ADVENTURE · PLAY PAUSED</span><h2 id="journalTitle">Journal</h2></div><button type="button" id="journalClose" aria-label="Close journal">×</button></header>
+      <nav class="journal-modes" aria-label="Journal sections"><button type="button" data-journal-mode="all" aria-pressed="true">Journal</button><button type="button" data-journal-mode="clues" aria-pressed="false">Current clues</button><button type="button" data-journal-mode="notes" aria-pressed="false">My notes</button></nav>
+      <div class="journal-search"><label for="journalSearch">Search recorded knowledge and notes</label><input id="journalSearch" type="search" autocomplete="off" placeholder="Person, place, topic, or text…" /><button id="journalNewNote" type="button" hidden>New note</button></div>
+      <p id="journalStatus" role="status" aria-live="polite"></p>
+      <div id="journalContent" class="journal-content"></div>
+      <form id="journalEditor" class="journal-editor" hidden><label for="journalNoteText">My note</label><textarea id="journalNoteText" rows="7" aria-describedby="journalEditorHelp"></textarea><p id="journalEditorHelp">Only Done saves your writing. Up to 4,000 UTF-8 bytes.</p><div><button id="journalDone" type="submit">Done</button><button id="journalCancelEdit" type="button">Cancel</button></div><button id="journalDeleteNote" type="button" hidden>Delete note</button><div id="journalDeleteConfirm" hidden><p>Delete this personal note? The recorded passage will remain.</p><button id="journalConfirmDelete" type="button">Delete</button><button id="journalCancelDelete" type="button">Keep note</button></div></form>
+    </dialog>
+    <dialog id="mapDialog" class="map-dialog" aria-labelledby="mapTitle">
+      <header class="map-dialog-header"><div><span class="eyebrow">THIS ADVENTURE · PLAY PAUSED</span><h2 id="mapTitle">Exploration map</h2><p id="mapSubtitle">Only places this adventure has discovered are shown.</p></div><button id="mapClose" type="button" aria-label="Close map">×</button></header>
+      <div class="map-canvas-wrap"><canvas id="explorationMapCanvas" width="256" height="256" tabindex="0" aria-label="Explored map; click an explored location to add or edit a pin"></canvas><div id="mapMarkers" aria-hidden="true"></div></div>
+      <section class="map-pin-editor" id="mapPinEditor" hidden>
+        <label for="mapPinLabel">Pin at <span id="mapPinCoordinates"></span></label>
+        <input id="mapPinLabel" maxlength="160" autocomplete="off" placeholder="What is here?" />
+        <div><button id="mapPinSave" type="button">Save pin</button><button id="mapPinRemove" type="button">Remove pin</button><button id="mapPinCancel" type="button">Cancel</button></div>
+      </section>
+      <div class="map-legend" id="mapLegend" aria-live="polite"></div>
+    </dialog>
+    <dialog class="adventure-dialog" id="adventureDialog" aria-labelledby="adventureTitle">
+      <header class="adventure-heading">
+        <span class="eyebrow">ULTIMATUM · ULTIMA IV</span>
+        <h2 id="adventureTitle">Quest of the Avatar</h2>
+        <p id="adventureIntro">Continue a saved game or start a new one.</p>
+      </header>
+      <div id="adventureStatus" role="status" aria-live="polite">Preparing the engine and local saves…</div>
+      <div id="adventureSlots" class="adventure-slots"></div>
+      <section id="adventureConfirm" class="adventure-confirm" hidden aria-labelledby="adventureConfirmText">
+        <p id="adventureConfirmText"></p>
+        <label id="adventureNameLabel" hidden>Saved game name<input id="adventureName" maxlength="40" autocomplete="off" /></label>
+        <div class="adventure-actions"><button id="adventureConfirmButton" type="button">Confirm</button><button id="adventureCancelButton" type="button">Cancel</button></div>
+      </section>
+      <footer class="adventure-footer" id="adventureFooter">
+        <button id="adventureSaveNow" type="button" hidden>Save Game</button>
+        <button id="adventureExportPending" type="button" hidden>Export unstored checkpoint</button>
+        <button id="adventureResume" type="button" hidden>Resume</button>
+        <button id="adventureData" type="button" disabled>Game data</button>
+        <button id="adventureRetry" type="button" hidden>Retry loading</button>
+        <button id="adventureAccount" type="button">Sign in or create account</button>
+        <button data-open-feedback type="button">Feedback or report a bug</button>
+        <button id="adventureTitleButton" type="button" hidden>Title screen</button>
+        <p id="adventureSaveHelp" hidden>Automatic checkpoints every 10 safe turns. Save before leaving. Import an exported .u4save backup, or select classic PARTY.SAV + MONSTERS.SAV together (with dungeon files when needed).</p>
+        <p>Saves stay in this browser, on this device. Export backups before clearing site data. Optional cloud checkpoints are available through your account.</p>
+      </footer>
+      <input id="adventureImport" type="file" accept=".u4save,.json,.sav,.dat,.txt,application/json" multiple hidden />
+    </dialog>
+    <dialog class="data-dialog" id="dataDialog" aria-labelledby="dataDialogTitle">
+      <div class="dialog-heading">
+        <div><span class="eyebrow">LOCAL GAME LIBRARY</span><h2 id="dataDialogTitle">Choose thy Ultima IV data</h2></div>
+        <button class="icon-button" id="closeDataButton" type="button" aria-label="Close">×</button>
+      </div>
+    <p class="dialog-intro">The files stay in this browser. Choose a complete original English DOS/EGA game folder, a ZIP on this device, or a direct ZIP URL. We verify the game files before replacing your library; unrelated files and embedded saves are not imported.</p>
+
+      <div class="import-options">
+        <label class="import-card">
+          <span class="import-icon">▧</span><strong>Game folder</strong><small>Select the folder containing AVATAR.EXE and TITLE.EXE.</small>
+          <input id="gameFolderInput" type="file" webkitdirectory multiple />
+        </label>
+        <label class="import-card">
+          <span class="import-icon">⇧</span><strong>ZIP from device</strong><small>Use a ZIP containing the original DOS game files.</small>
+          <input id="gameZipInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" />
+        </label>
+      </div>
+
+      <form class="url-import" id="gameUrlForm">
+        <label for="gameUrlInput">Direct URL to a game-data ZIP</label>
+        <div><input id="gameUrlInput" type="url" inputmode="url" placeholder="https://example.com/ultima4.zip" required /><button type="submit">Fetch ZIP</button></div>
+        <small>The source must allow browser downloads from other websites.</small>
+      </form>
+
+      <div class="vga-import">
+        <div><span class="eyebrow">INCLUDED AUTOMATICALLY · NO PATCH UPLOAD NEEDED</span><strong>VGA graphics upgrade</strong><small>Just choose thy original game data above. The verified graphics overlay is already included and never alters thy game files or saves. Classic/EGA choices are respected.</small></div>
+      </div>
+
+      <div class="import-status" id="importStatus" role="status" aria-live="polite">No files selected.</div>
+      <div class="dialog-footer"><button data-open-feedback class="dialog-feedback-button" type="button">Feedback</button><button id="dataAccount" type="button">Sign in or create account</button><button id="reloadDataButton" type="button" hidden>Reload with imported data</button></div>
+    </dialog>
+    <dialog id="feedbackDialog" class="feedback-dialog" aria-labelledby="feedbackTitle">
+      <header class="dialog-heading">
+        <div><span class="eyebrow">HELP SHAPE ULTIMATUM</span><h2 id="feedbackTitle">Send feedback</h2></div>
+        <button class="icon-button" id="closeFeedbackButton" type="button" aria-label="Close feedback form">×</button>
+      </header>
+      <form id="feedbackForm">
+        <fieldset class="feedback-kind">
+          <legend>What would you like to send?</legend>
+          <label><input type="radio" name="feedbackKind" value="feedback" checked><span><b>Feedback</b><small>Share an idea or tell us what you think.</small></span></label>
+          <label><input type="radio" name="feedbackKind" value="bug"><span><b>Bug report</b><small>Tell us what went wrong.</small></span></label>
+        </fieldset>
+        <label class="feedback-field" for="feedbackMessage"><span>Your message</span><textarea id="feedbackMessage" minlength="20" maxlength="4000" rows="6" placeholder="What happened, or what would make the game better?" required></textarea><small><span id="feedbackLength">0</span> / 4,000</small></label>
+        <label class="feedback-field" for="feedbackEmail"><span>Reply email <small>Optional</small></span><input id="feedbackEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com"></label>
+        <label class="feedback-diagnostics"><input id="feedbackDiagnostics" type="checkbox"><span><b>Include device details</b><small>Sends the page, app build, browser, and screen size to help diagnose bugs. No save data is included.</small></span></label>
+        <label class="feedback-trap" aria-hidden="true">Website<input id="feedbackWebsite" type="text" autocomplete="off" tabindex="-1"></label>
+        <p id="feedbackStatus" class="feedback-status" role="status" aria-live="polite"></p>
+        <footer class="feedback-footer"><a href="mailto:feedback@ultimatumproject.com">Email instead</a><div><button id="cancelFeedbackButton" class="feedback-secondary" type="button">Cancel</button><button id="sendFeedbackButton" type="submit">Send</button></div></footer>
+      </form>
+    </dialog>
+    <canvas id="engineCanvas" class="engine-canvas" width="320" height="200" aria-hidden="true"></canvas>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <dialog id="cloudDialog" class="cloud-dialog" aria-label="Ultimatum Account"><main id="cloudPanel" class="cloud-panel"></main></dialog>
+    <script src="game-data-manifest.js?v=20260917-cloud-mobile11"></script>
+    <script src="game-data.js?v=20260917-cloud-mobile11"></script>
+    <script src="adventure-store.js?v=20260917-cloud-mobile11"></script>
+    <script src="cloud-sdk.js?v=20260917-cloud-mobile11"></script>
+    <script src="cloud-config.js?v=20260917-cloud-mobile11"></script>
+    <script src="cloud-client.js?v=20260917-cloud-mobile11"></script>
+    <script src="cloud-ui.js?v=20260917-cloud-mobile11"></script>
+    <script src="adventure-ui.js?v=20260917-cloud-mobile11"></script>
+    <script src="engine-client.js?v=20260917-cloud-mobile11"></script>
+    <script src="journal-ui.js?v=20260917-cloud-mobile11"></script>
+    <script src="app.js?v=20260917-cloud-mobile11"></script>
+  </body>
+</html>

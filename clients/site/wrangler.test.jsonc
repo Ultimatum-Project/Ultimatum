@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "ultimatum-project-test",
+  "compatibility_date": "2026-09-15",
+  "workers_dev": false,
+  "preview_urls": false,
+  // Test hostname is publicly accessible and uses the same release policy as production.
+  "routes": [{"pattern": "test.ultimatumproject.com", "custom_domain": true}],
+  "assets": {
+    "directory": "./build-test",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

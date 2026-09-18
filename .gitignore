@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Developer-specific identifiers and public-client deployment configuration.
+# Copy .env.example to .env.local; never commit the populated file.
+.env.local
+
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Local build products and generated game data
+vendor/ultima4-ios/ios/build/
+vendor/ultima4-ios/debug/
+vendor/ultima4-ios/u4data/
+vendor/ultima4-ios/ultima4/
+vendor/ultima4-ios/*.o
+vendor/ultima4-ios/u4
+vendor/ultima4-ios/u4upgrad.zip
+vendor/ultima4-ios/ultima4.zip
+clients/web/.cache/
+clients/web/dist/engine/
+clients/site/build/
+clients/site/.cache/
+
+# Local logs and temporary files
+*.log
+*.tmp
+*~

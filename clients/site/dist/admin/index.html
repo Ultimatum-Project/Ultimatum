@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101916">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Admin — Ultimatum Project</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="admin.css?v=20260917-feedback1">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to dashboard</a>
+  <header class="admin-header">
+    <a class="brand" href="../"><span aria-hidden="true">U</span> ULTIMATUM PROJECT</a>
+    <div class="header-actions" data-signed-in hidden><span id="identity"></span><button id="refresh" type="button">Refresh</button><button id="signOut" class="secondary" type="button">Sign out</button></div>
+  </header>
+  <main id="main">
+    <section id="auth" class="auth-card" aria-labelledby="auth-title">
+      <p class="eyebrow">PRIVATE ADMIN</p><h1 id="auth-title">Project dashboard</h1>
+      <p>Sign in with the administrator email address to view account and play activity.</p>
+      <form id="authForm">
+        <label>Email address<input id="email" type="email" autocomplete="email" required></label>
+        <div id="codeRow" hidden><label>Email code<input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"></label></div>
+        <button id="submitAuth" type="submit">Send sign-in code</button>
+        <button id="changeEmail" class="secondary" type="button" hidden>Use another email</button>
+      </form>
+      <p id="authStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="dashboard" hidden>
+      <div class="title-row"><div><p class="eyebrow">PRIVATE ADMIN</p><h1>Project dashboard</h1><p id="updated" class="muted"></p></div></div>
+      <section aria-labelledby="accounts-title"><div class="section-heading"><div><p class="eyebrow">AUDIENCE</p><h2 id="accounts-title">Accounts</h2></div><p>Active means the account signed in during the period.</p></div><div id="accountMetrics" class="metric-grid"></div></section>
+      <section aria-labelledby="play-title"><div class="section-heading"><div><p class="eyebrow">ENGAGEMENT</p><h2 id="play-title">Play &amp; saves</h2></div><p>Play sessions count signed-in starts and continues after this dashboard was enabled.</p></div><div id="playMetrics" class="metric-grid"></div></section>
+      <section class="chart-section" aria-labelledby="trend-title"><div class="section-heading"><div><p class="eyebrow">LAST 30 DAYS</p><h2 id="trend-title">Daily activity</h2></div><div class="legend"><span class="accounts">Accounts</span><span class="sessions">Play sessions</span><span class="uploads">Uploads</span></div></div><div id="trend" class="trend" role="img" aria-label="Daily account, play-session, and checkpoint-upload activity"></div></section>
+      <section aria-labelledby="games-title"><div class="section-heading"><div><p class="eyebrow">LIBRARY</p><h2 id="games-title">Games</h2></div></div><div id="games" class="game-list"></div></section>
+      <section aria-labelledby="feedback-title"><div class="section-heading"><div><p class="eyebrow">PLAYER VOICE</p><h2 id="feedback-title">Feedback &amp; bug reports</h2></div><p id="feedbackCount">Loading reports…</p></div><div id="feedback" class="feedback-list"></div></section>
+      <section aria-labelledby="recent-title"><div class="section-heading"><div><p class="eyebrow">LATEST</p><h2 id="recent-title">Recent accounts</h2></div><p>Only visible to the administrator.</p></div><div class="table-wrap"><table><thead><tr><th>Email</th><th>Created</th><th>Last active</th><th>Cloud items</th><th>Storage</th></tr></thead><tbody id="recent"></tbody></table></div></section>
+      <p id="dashboardStatus" class="status" role="status" aria-live="polite"></p>
+    </div>
+  </main>
+  <script src="../play/cloud-sdk.js?v=20260916-account1"></script>
+  <script src="../play/cloud-config.js?v=20260916-account1"></script>
+  <script src="admin.js?v=20260917-feedback1"></script>
+</body>
+</html>

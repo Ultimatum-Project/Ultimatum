@@ -1,0 +1,2 @@
+create index cloud_save_heads_revision_idx on public.cloud_save_heads(current_revision);
+create index cloud_save_revisions_parent_idx on public.cloud_save_revisions(parent_revision);

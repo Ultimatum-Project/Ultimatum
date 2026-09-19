@@ -1,5 +1,10 @@
 # Ultima IV port descriptor
 
+`catalog-entry.json` is the platform-owned presentation and acquisition record.
+`port.manifest.json` remains the engine adapter descriptor. Keeping these
+separate allows a future catalog or launcher to change presentation without
+moving engine-specific validation into the platform shell.
+
 This directory is the first compatibility boundary for the existing xu4-based
 port. The implementation remains in its proven locations while Phase 0.5
 extracts contracts around it.

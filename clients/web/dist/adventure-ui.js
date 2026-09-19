@@ -261,7 +261,7 @@
       this.engine.writeAdventureFiles(action==="continue" ? record.current.files : {});
       this.ui.adventureDialog.close();
       if(action==="continue") sessionStorage.setItem(ACTIVE_SESSION,JSON.stringify({slot,startedAt:Date.now()}));
-      this.hooks.start(action==="continue");
+      if(await this.hooks.start(action==="continue")===false) return;
       this.cloudUI?.cloud.event('game_session_started',{game:'ultima4',platform:'web',action}).catch(error=>console.warn('Play session metric deferred',error));
       if(action==="new") this.engine.sendKey(105);
     }

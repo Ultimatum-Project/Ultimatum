@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/catalog-entry-v1.schema.json",
+  "title": "Ultimatum catalog entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "gameId", "portId", "slug", "title", "series",
+    "releaseYear", "publisher", "developers", "descriptions", "availability",
+    "port", "editions", "hostSupport", "defaultControlProfiles", "artwork",
+    "knownLimitations", "notices"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "gameId": { "$ref": "#/$defs/id" },
+    "portId": { "$ref": "#/$defs/id" },
+    "slug": { "$ref": "#/$defs/id" },
+    "title": { "$ref": "#/$defs/label" },
+    "series": { "$ref": "#/$defs/label" },
+    "releaseYear": { "type": "integer", "minimum": 1970, "maximum": 2100 },
+    "publisher": { "$ref": "#/$defs/label" },
+    "developers": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "$ref": "#/$defs/label" }
+    },
+    "descriptions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["short", "long"],
+      "properties": {
+        "short": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "long": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "availability": { "enum": ["available", "preview", "hidden", "retired"] },
+    "port": {
+      "type": "object", "additionalProperties": false,
+      "required": ["descriptor", "adapterApiRange"],
+      "properties": {
+        "descriptor": { "$ref": "#/$defs/repositoryPath" },
+        "adapterApiRange": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "editions": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "label", "languages", "acquisition"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "$ref": "#/$defs/label" },
+          "languages": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Z]{2})?$" }
+          },
+          "acquisition": {
+            "type": "object", "additionalProperties": false,
+            "required": ["mode", "guidance"],
+            "properties": {
+              "mode": { "enum": ["bring-your-own-data", "authorized-download", "bundled"] },
+              "guidance": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+    "hostSupport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["web", "native"],
+      "properties": {
+        "web": {
+          "type": "object", "additionalProperties": false,
+          "required": ["supported", "offlineAfterInstall"],
+          "properties": {
+            "supported": { "type": "boolean" },
+            "offlineAfterInstall": { "type": "boolean" }
+          }
+        },
+        "native": {
+          "type": "array", "uniqueItems": true,
+          "items": { "enum": ["ios", "macos", "windows", "linux", "android"] }
+        }
+      }
+    },
+    "defaultControlProfiles": {
+      "type": "object", "additionalProperties": false,
+      "required": ["desktop", "touch"],
+      "properties": {
+        "desktop": { "$ref": "#/$defs/id" },
+        "touch": { "$ref": "#/$defs/id" }
+      }
+    },
+    "artwork": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["role", "path", "provenance"],
+        "properties": {
+          "role": { "enum": ["cover", "hero", "screenshot", "icon"] },
+          "path": { "$ref": "#/$defs/repositoryPath" },
+          "provenance": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    },
+    "knownLimitations": {
+      "type": "array", "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    },
+    "notices": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["label", "path"],
+        "properties": {
+          "label": { "$ref": "#/$defs/label" },
+          "path": { "$ref": "#/$defs/repositoryPath" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "repositoryPath": {
+      "type": "string", "minLength": 1, "maxLength": 300,
+      "pattern": "^(?![A-Za-z]:|/|.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    }
+  }
+}

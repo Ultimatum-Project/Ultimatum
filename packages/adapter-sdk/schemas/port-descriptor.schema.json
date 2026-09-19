@@ -49,7 +49,7 @@
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
-            "items": { "$ref": "#/$defs/id" }
+            "items": { "$ref": "#/$defs/profileId" }
           }
         }
       }
@@ -89,6 +89,7 @@
     "saveSchemaVersion": { "type": "integer", "minimum": 1 }
   },
   "$defs": {
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 }
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "profileId": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$", "maxLength": 120 }
   }
 }

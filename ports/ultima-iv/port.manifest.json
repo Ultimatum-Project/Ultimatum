@@ -16,7 +16,7 @@
     {
       "id": "dos-english-ega",
       "label": "Ultima IV DOS English (EGA)",
-      "importProfileIds": ["u4-dos-english-ega-v1"]
+      "importProfileIds": ["u4-dos-english-ega-v1", "u4-dos-english-ega-1.01-v1"]
     }
   ],
   "capabilities": {

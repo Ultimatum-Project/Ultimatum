@@ -1,0 +1,6 @@
+{
+  "name": "@ultimatum/session-orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/session-orchestrator.js"
+}

@@ -22,11 +22,12 @@
     };
     if (sessionStorage.getItem("public-data-phase")==="reload") {
       results.push(...JSON.parse(sessionStorage.getItem("public-data-results")));
-      await wait(()=>ui.adventureDialog.open && document.querySelector('[data-adventure-action="continue"][data-slot="1"]:not(:disabled)'),"saved adventure title after reload");
+      const continueButton=()=>document.querySelector('[data-adventure-action="continue"][data-slot="1"]:not(:disabled)');
+      await wait(()=>state()?.ready && state().inputMode==="command" || ui.adventureDialog.open && continueButton(),"saved adventure recovery after reload");
       assert(engine.hasGameData(),"Verified game library restores on reload");
       const expectedProfile=sessionStorage.getItem("public-data-expected-profile");
-      if(expectedProfile) assert((await libraryGet("game")).profile===expectedProfile,"The audited 1.01 library restores under its verified profile");
-      document.querySelector('[data-adventure-action="continue"][data-slot="1"]').click();
+      if(expectedProfile) assert((await library.get("source-data")).profile===expectedProfile,"The audited 1.01 library restores under its verified profile");
+      if(continueButton())continueButton().click();
       await wait(()=>state()?.ready && state().inputMode==="command","public Continue restores gameplay");
       assert(state().party[0].name==="PublicHero" && state().moves===2,"Public Continue restores the saved Avatar and turns");
       window.dataRuntimeResults={ok:true,results};
@@ -35,25 +36,40 @@
     assert(!engine.hasGameData(),"Public engine starts without original game data");
     assert(!engine.hasSave(),"Public engine does not preload a development party");
     assert(window.UltimatumPublicLoader.script.startsWith("engine/engine-"),"Content-addressed engine loads with chunked assets");
+    const opfs=window.ultimatumStorageProviders.experimentalOpfs;
+    assert(Boolean(opfs)===Boolean(navigator.storage?.getDirectory),"OPFS capability registration matches the browser");
+    if(opfs) {
+      const path="qa/phase1-04/probe.bin";
+      const transaction=await opfs.beginTransaction("qa/phase1-04");
+      transaction.write(path,new Uint8Array([85,52]));await transaction.commit();
+      assert((await opfs.read(path)).join(",")==="85,52","Experimental OPFS provider commits and reads isolated bytes");
+      const entries=[];for await(const entry of opfs.list("qa/phase1-04"))entries.push(entry.path);
+      assert(entries.includes(path),"Experimental OPFS provider enumerates its logical namespace");
+      const cleanup=await opfs.beginTransaction("qa/phase1-04");cleanup.remove(path);await cleanup.commit();
+      assert(await opfs.stat(path)===null,"Experimental OPFS runtime probe cleans up its test data");
+    }
     for(const kind of ["missing","wrong-version","unsafe","duplicate","corrupt","too-large","too-many","ambiguous","split"]) {
       await submit(kind);
       assert(ui.importStatus.dataset.state==="error",`${kind} archive rejected through the actual URL importer`);
-      assert(!(await libraryGet("game")) && !engine.hasGameData(),`${kind} archive does not publish a library or active game files`);
+      assert(!(await library.get("source-data")) && !engine.hasGameData(),`${kind} archive does not publish a library or active game files`);
     }
     await submit("valid");
     await wait(()=>ui.adventureDialog.open && document.querySelector("[data-adventure-action='new']"),"verified data reaches title");
-    const stored=await libraryGet("game");
-    assert(stored.files.length===103 && stored.profile==="u4-dos-english-ega-v1","Verified ZIP publishes exactly the 103 supported files");
+    const stored=await library.get("source-data");
+    const reviewedProfiles=window.UltimatumGameData.manifest.profiles.map(profile=>profile.id);
+    assert(stored?.files?.length===103 && reviewedProfiles.includes(stored.profile),`Verified ZIP publishes exactly the 103 supported files under a reviewed profile (got ${stored?.files?.length ?? "none"}, ${stored?.profile ?? "no profile"})`);
+    const installRecord=await library.get("install-record");
+    assert(installRecord?.state==="playable" && installRecord.installation?.importProfileId===stored.profile,"Source data and its durable install record publish together");
     assert(!stored.files.some(file=>file.name.endsWith(".SAV") || file.name==="README.TXT"),"Embedded saves and unrelated files are excluded");
     assert(engine.hasGameData() && !engine.hasSave(),"Accepted data activates without importing embedded saves");
-    assert(window.Module.FS.readFile("/u4upgrad.zip").length>0 && !(await libraryGet("vga")),"Verified graphics-only VGA overlay is already included without a separate upload");
+    assert(window.Module.FS.readFile("/u4upgrad.zip").length>0 && !(await library.get("optional-overlay")),"Verified graphics-only VGA overlay is already included without a separate upload");
     const map=window.Module.FS.readFile("/ultima4/WORLD.MAP").slice();
     openDataLibrary(); await submit("wrong-version");
-    assert((await libraryGet("game")).files[0].sha256===stored.files[0].sha256,"Rejected replacement preserves the durable library");
+    assert((await library.get("source-data")).files[0].sha256===stored.files[0].sha256,"Rejected replacement preserves the durable library");
     assert(window.Module.FS.readFile("/ultima4/WORLD.MAP").every((b,i)=>b===map[i]),"Rejected replacement preserves active game bytes");
-    const persist=libraryPut;
-    libraryPut=async()=>{throw new DOMException("Injected quota boundary failure","QuotaExceededError");};
-    try {await submit("valid");} finally {libraryPut=persist;}
+    const persist=library.publishInstall;
+    library.publishInstall=async()=>{throw new DOMException("Injected quota boundary failure","QuotaExceededError");};
+    try {await submit("valid");} finally {library.publishInstall=persist;}
     assert(ui.importStatus.dataset.state==="error" && window.Module.FS.readFile("/ultima4/WORLD.MAP").every((b,i)=>b===map[i]),"Storage failure rolls active files back and reports no success");
     const write=window.Module.FS.writeFile;
     window.Module.FS.writeFile=function(path,...args) {
@@ -70,14 +86,14 @@
       const transfer=new DataTransfer();transfer.items.add(new File([buffer],"Ultima_IV_-_Quest_of_the_Avatar_1985.zip",{type:"application/zip"}));
       ui.gameZipInput.files=transfer.files;ui.gameZipInput.dispatchEvent(new Event("change"));
       await wait(()=>["success","error"].includes(ui.importStatus.dataset.state),"actual audited ZIP file input");
-      let audited=await libraryGet("game");
+      let audited=await library.get("source-data");
       assert(ui.importStatus.dataset.state==="success" && audited.profile==="u4-dos-english-ega-1.01-v1","The user's exact Archive.org ZIP imports through the launcher file input as 1.01");
       assert(audited.verification.directory==="ULTIMA4" && audited.verification.otherDirectories===1,"Base installation is selected without mixing in the nested upgrade");
       assert(audited.files.find(file=>file.name==="COMPASSN.EGA").data.byteLength===719 && !engine.hasSave(),"Original EGA graphics are selected and embedded saves remain excluded");
       openDataLibrary();
       ui.gameUrlInput.value=`${location.origin}/runtime/audit.zip`;ui.gameUrlForm.requestSubmit();
       await wait(()=>["success","error"].includes(ui.importStatus.dataset.state),"audited direct ZIP URL");
-      assert(ui.importStatus.dataset.state==="success" && (await libraryGet("game")).profile===audited.profile,"The same audited ZIP also imports by direct URL");
+      assert(ui.importStatus.dataset.state==="success" && (await library.get("source-data")).profile===audited.profile,"The same audited ZIP also imports by direct URL");
       // Exercise the folder event path with browser-shaped relative filenames.
       openDataLibrary();
       const folderTransfer=new DataTransfer();
@@ -87,7 +103,7 @@
       }
       ui.gameFolderInput.files=folderTransfer.files;ui.gameFolderInput.dispatchEvent(new Event("change"));
       await wait(()=>["success","error"].includes(ui.importStatus.dataset.state),"audited folder input event");
-      audited=await libraryGet("game");
+      audited=await library.get("source-data");
       assert(ui.importStatus.dataset.state==="success" && audited.profile==="u4-dos-english-ega-1.01-v1","Folder import follows the same installation and complete-profile selection");
       sessionStorage.setItem("public-data-expected-profile",audited.profile);
       assert(window.Module.FS.readdir("/game-data-check").length===2,"Nested extraction staging is cleaned up after every import");
@@ -111,7 +127,7 @@
       previous=prompt.id;choice.click();return false;
     },"story and virtue questions reach gameplay");
     assert(stories===24 && questions===7 && state().party[0].name==="PublicHero","Public BYOD build completes original character creation and enters the world");
-    assert(state().vgaAvailable && state().video==="vga" && !(await libraryGet("vga")),"New adventure runs in VGA without a separate patch upload");
+    assert(state().vgaAvailable && state().video==="vga" && !(await library.get("optional-overlay")),"New adventure runs in VGA without a separate patch upload");
     for(let i=0;i<2;i++) {
       const before=state().moves;document.querySelector('[data-key="32"]').click();
       await wait(()=>state().inputMode==="command" && state().moves===before+1,"Wait advances one safe turn");
@@ -119,8 +135,8 @@
     assert(state().moves===2,"Public game controls remain responsive after creation");
     document.querySelector(mobileLayout.matches ? '#mobileMenuButton' : '#menuButton').click();
     await tap("experience"); await tap("audio");
-    assert(info.soundtrack==="xu4" && state().audio.soundtrack==="hurin","Public build does not identify the xu4 soundtrack");
-    assert(!document.querySelector('[data-prompt-value="soundtrack"]'),"Public audio menu still offers alternate soundtrack packs");
+    assert(info.soundtrack==="xu4" && state().audio.soundtrack==="hurin","Public build identifies only the xu4 soundtrack");
+    assert(!document.querySelector('[data-prompt-value="soundtrack"]'),"Public audio menu does not offer alternate soundtrack packs");
     await tap("music"); await tap("0");
     assert(!state().audio.enabled,"Music volume Off did not mute the xu4 soundtrack");
     await tap("music"); await tap("6"); await tap("effects"); await tap("4");
@@ -130,7 +146,7 @@
     for(let depth=0;depth<4;depth++) await tap("\x1b");
     await wait(()=>state().inputMode==="command","audio cancellation returns to gameplay");
     assert(state().moves===2,"Audio menus and cancellation do not advance game turns");
-    assert(!state().capabilities.debugTools,"Public runtime does not expose debug tools");
+    assert(state().capabilities.debugTools===Boolean(info.qaDebug),"Debug Tools capability matches the compile-gated release metadata");
     const store=new window.UltimatumSaveStore();
     ui.saveButton.click();
     const until=Date.now()+30000;

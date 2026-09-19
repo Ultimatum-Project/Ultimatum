@@ -79,6 +79,10 @@ export async function build(options = {}) {
   const play = path.join(staging,"play");
   await mkdir(path.join(play,"engine"),{recursive:true});
   for (const name of ["index.html","app.css","app.js","engine-client.js","engine-session.js","library-store.js","import-adapter.js","save-store.js","adventure-ui.js","journal-ui.js","cloud-sdk.js","cloud-sdk.js.LEGAL.txt","cloud-config.js","cloud-client.js","cloud-ui.js","cloud.css","game-data.js","game-data-manifest.js","manifest.webmanifest","sw.js"]) await cp(path.join(web,"dist",name),path.join(play,name));
+  await cp(path.join(repo,"packages/import-framework/src/installation-orchestrator.js"),path.join(play,"installation-orchestrator.js"));
+  await cp(path.join(repo,"packages/session-orchestrator/src/session-orchestrator.js"),path.join(play,"session-orchestrator.js"));
+  await cp(path.join(repo,"packages/storage/src/storage-provider-contract.js"),path.join(play,"storage-provider-contract.js"));
+  await cp(path.join(repo,"packages/storage/src/opfs-storage-provider.js"),path.join(play,"opfs-storage-provider.js"));
   await writeFile(path.join(play,"cloud-config.js"),renderCloudConfig(audience));
   // Old decorative sprite URLs are unnecessary in the engine-backed UI and
   // should not cause game-data images to be copied into the public shell.
@@ -105,7 +109,7 @@ export async function build(options = {}) {
   await mkdir(source,{recursive:true});
   await mkdir(licenses,{recursive:true});
   await cp(path.join(repo,".env.example"),path.join(source,".env.example"));
-  for (const directory of ["packages/adapter-sdk","packages/import-framework","packages/save-store","packages/semantic-session","packages/storage","ports/ultima-iv"])
+  for (const directory of ["packages/adapter-sdk","packages/catalog","packages/import-framework","packages/library","packages/save-store","packages/semantic-session","packages/session-orchestrator","packages/storage","ports/ultima-iv"])
     await copyDirectory(path.join(repo,directory),path.join(source,directory));
   await cp(path.join(web,".cache/deps/libxml2/Copyright"),path.join(licenses,"libxml2.txt"));
   await cp(path.join(web,".cache/ports/SDL2/LICENSE.txt"),path.join(licenses,"SDL2.txt"));

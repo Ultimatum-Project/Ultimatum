@@ -1,4 +1,5 @@
 const id = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const profileId = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/;
 const enums = {
   saves: new Set(["none", "opaque-files", "managed"]),
   mods: new Set(["none", "files", "packages", "custom"]),
@@ -34,7 +35,7 @@ export function validatePortDescriptor(value) {
     editionIds.add(edition.id);
     requireValue(typeof edition.label === "string" && edition.label.length > 0, `edition ${edition.id} needs a label`);
     requireValue(Array.isArray(edition.importProfileIds) && edition.importProfileIds.length > 0 &&
-      edition.importProfileIds.every(profile => id.test(profile)), `edition ${edition.id} needs stable import profiles`);
+      edition.importProfileIds.every(profile => profileId.test(profile)), `edition ${edition.id} needs stable import profiles`);
   }
 
   const capabilities = value.capabilities;

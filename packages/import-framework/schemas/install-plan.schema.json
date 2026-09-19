@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/install-plan-v1.schema.json",
+  "title": "Ultimatum install plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "adapterId", "gameId", "portId", "installId", "editionId", "profileId", "logicalBytes", "destination", "publication", "privacy"],
+  "properties": {
+    "contractVersion": { "const": 1 },
+    "adapterId": { "$ref": "#/$defs/id" },
+    "gameId": { "$ref": "#/$defs/id" },
+    "portId": { "$ref": "#/$defs/id" },
+    "installId": { "$ref": "#/$defs/id" },
+    "editionId": { "$ref": "#/$defs/id" },
+    "profileId": { "$ref": "#/$defs/profileId" },
+    "logicalBytes": { "type": "integer", "minimum": 0 },
+    "destination": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "mount"],
+      "properties": {
+        "role": { "const": "source-data" },
+        "mount": { "type": "string", "pattern": "^/", "maxLength": 300 }
+      }
+    },
+    "publication": { "enum": ["atomic-record", "atomic-record-with-runtime-rollback"] },
+    "privacy": { "enum": ["local-only", "local-only-unless-user-uploads", "authorized-download"] }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "profileId": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$", "maxLength": 120 }
+  }
+}

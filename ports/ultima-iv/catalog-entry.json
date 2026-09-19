@@ -1,0 +1,50 @@
+{
+  "$schema": "../../packages/catalog/schemas/catalog-entry.schema.json",
+  "schemaVersion": 1,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "slug": "ultima-iv",
+  "title": "Ultima IV: Quest of the Avatar",
+  "series": "Ultima",
+  "releaseYear": 1985,
+  "publisher": "Origin Systems",
+  "developers": ["Origin Systems"],
+  "descriptions": {
+    "short": "Seek the eight virtues and become the Avatar in a landmark role-playing game.",
+    "long": "Return to Britannia through the open-source xu4 engine with modern web and touch interfaces, protected local saves, portable backups, maps, journals, and optional private synchronization."
+  },
+  "availability": "available",
+  "port": {
+    "descriptor": "ports/ultima-iv/port.manifest.json",
+    "adapterApiRange": ">=0.1.0 <0.2.0"
+  },
+  "editions": [
+    {
+      "id": "dos-english-ega",
+      "label": "Ultima IV DOS English (EGA)",
+      "languages": ["en"],
+      "acquisition": {
+        "mode": "bring-your-own-data",
+        "guidance": "Provide a complete supported English DOS/EGA copy. Files are validated locally and are not uploaded merely to play."
+      }
+    }
+  ],
+  "hostSupport": {
+    "web": { "supported": true, "offlineAfterInstall": true },
+    "native": ["ios"]
+  },
+  "defaultControlProfiles": {
+    "desktop": "classic",
+    "touch": "ultimatum"
+  },
+  "artwork": [],
+  "knownLimitations": [
+    "The public web release requires a supported original DOS/EGA data set.",
+    "Voice input and shared controller remapping are not yet available."
+  ],
+  "notices": [
+    { "label": "Port and engine notes", "path": "ports/ultima-iv/README.md" },
+    { "label": "Engine license", "path": "vendor/ultima4-ios/COPYING" },
+    { "label": "Redistribution review", "path": "docs/engineering/ULTIMA_IV_REDISTRIBUTION_NOTE.md" }
+  ]
+}

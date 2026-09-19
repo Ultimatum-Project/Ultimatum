@@ -5,11 +5,40 @@ const ui = Object.fromEntries([...document.querySelectorAll("[id]")].map(element
 const cloudConfigured=Boolean(window.UltimatumCloudConfig?.url&&window.UltimatumCloudConfig?.key);
 const runtimeModule = () => document.ultimatumRuntimeModule || window.UltimatumRuntimeModule || window.Module;
 const engine = new window.UltimatumEngineSession(new window.UltimatumEngineClient(runtimeModule));
+const sessionOrchestrator = new window.UltimatumSessionOrchestrator({
+  session: engine,
+  lease: new window.UltimatumWebSessionLease({name:"ultimatum-ultima4-default-session-v1"}),
+  preflight: () => {
+    if (!engine.hasGameData()) throw Error("Verified Ultima IV game data is required before starting a session.");
+  },
+  mount: () => waitForRuntimeFilesystem(),
+  checkpoint: reason => secureActiveAdventure(reason),
+});
+window.ultimatumSessionDiagnostics = () => sessionOrchestrator.diagnostics();
+sessionOrchestrator.onProgress(event => { document.documentElement.dataset.sessionState = event.state; });
 const library = new window.UltimatumIndexedDbLibraryStore();
+const experimentalOpfs = window.UltimatumOpfsStorageProvider?.isSupported() ? new window.UltimatumOpfsStorageProvider() : null;
+window.ultimatumStorageProviders = Object.freeze({default:library,experimentalOpfs});
+window.ultimatumStorageDiagnostics = async () => Object.freeze({
+  defaultProvider:library.id,
+  experimentalOpfs:Object.freeze({supported:Boolean(experimentalOpfs),selected:false,id:experimentalOpfs?.id || null}),
+  estimate:await library.estimate(),
+  migrationPerformed:false,
+});
 const gameDataImporter = new window.UltimaIVImportAdapter({
   gameData: window.UltimatumGameData,
   extractZip: (buffer, maxBytes) => engine.extractGameZip(buffer, maxBytes),
   maxZipBytes: 128 * 1024 * 1024,
+});
+const installationOrchestrator = new window.UltimatumInstallationOrchestrator({
+  adapter: gameDataImporter,
+  library,
+  stageRuntime: async verified => {
+    await waitForRuntimeFilesystem();
+    if (engineStarted) return null;
+    const rollback = engine.replaceGameFiles(verified.files);
+    return {rollback,commit:()=>rollback.commit()};
+  },
 });
 const adventures = new window.UltimatumAdventureUI(engine, {
   start: restoreSave => startEngine(restoreSave),
@@ -141,7 +170,7 @@ function setImportStatus(message, state = "") {
 }
 
 
-function startEngine(restoreSave) {
+async function startEngine(restoreSave) {
   if (engineStarted || !engine.hasGameData()) return false;
   conversationHistory = [];
   try {
@@ -152,8 +181,17 @@ function startEngine(restoreSave) {
   renderConversationHistory();
   engineStarted = true;
   ui.engineStatus.querySelector("span").textContent = restoreSave ? "Restoring the party…" : "Opening the Book of History…";
-  engine.start(restoreSave);
-  engine.startPolling(render, handleEngineReadError);
+  try {
+    await sessionOrchestrator.start({sessionOptions:{restoreSave},listener:render,onError:handleEngineReadError,interval:160});
+  } catch (error) {
+    engineStarted = false;
+    console.error(error);
+    ui.engineStatus.querySelector("span").textContent = error.name === "SessionLeaseUnavailableError"
+      ? "This game is already active in another tab."
+      : "The game session could not be started.";
+    toast(error.message);
+    return false;
+  }
   return true;
 }
 
@@ -175,10 +213,7 @@ function openAccountFromData() {
 
 async function activateGamePackage(record, description) {
   setImportStatus("Checking the complete DOS/EGA game data…", "busy");
-  const {verified} = await gameDataImporter.prepare(record);
-  const rollback = engineStarted ? null : engine.replaceGameFiles(verified.files);
-  try {await library.put("source-data", verified);} catch(error) {rollback?.(); throw error;}
-  rollback?.commit();
+  const {verified} = await installationOrchestrator.install(record);
   const notes = ` Verified ${verified.verification.label} data.${verified.verification.otherDirectories ? ` Using ${verified.verification.directory || "the ZIP root"}; other folders were not imported.` : ""}`;
   if (engineStarted) {
     setImportStatus(`${description} is saved in this browser. Reload to begin with it.${notes}`, "success");
@@ -199,11 +234,8 @@ async function localGameDataForCloud() {
 }
 
 async function installCloudGameData(text) {
-  const {verified} = await gameDataImporter.preparePackage(text);
   await waitForRuntimeFilesystem();
-  const rollback = engineStarted ? null : engine.replaceGameFiles(verified.files);
-  try { await library.put("source-data", verified); } catch (error) { rollback?.(); throw error; }
-  rollback?.commit();
+  await installationOrchestrator.installPackage(text);
   if (engineStarted) {
     ui.reloadDataButton.hidden = false;
     return {reloadRequired:true};
@@ -246,7 +278,8 @@ async function prepareRuntime() {
   ui.adventureData.disabled = false;
   ui.engineStatus.querySelector("span").textContent = "Opening the saved game…";
   try {
-    const [savedGame, savedVga] = await Promise.all([library.get("source-data"), library.get("optional-overlay")]);
+    const [libraryEntry, savedVga] = await Promise.all([library.inspect("ultima4","xu4"), library.get("optional-overlay")]);
+    const savedGame = libraryEntry.sourceData;
     const restoreGameSave = !engine.hasSave();
     if (savedGame) {
       const entries = savedGame.kind === "zip" ? engine.extractGameZip(savedGame.data, MAX_ZIP_BYTES) : savedGame.files;
@@ -1127,53 +1160,65 @@ ui.saveButton.addEventListener("click", async () => {
   }
 });
 
-async function secureLifecycle(reason) {
-  if (!engineReady || lifecycleSecuring) return lifecycleSecuring;
-  lifecycleSecuring = (async () => {
-    try {
-      if (latestState.canSave && adventures.activeSlot && !adventures.pendingCheckpoint) {
-        const saved = engine.saveAdventure();
-        if (saved > 0) {
-          const secured = engine.snapshot();
-          adventures.saveRevision = secured.saveRevision;
-          adventures.lastSavedMoves = secured.moves;
-          await adventures.capture("");
-        }
-      }
-      await adventures.saveQueue.catch(() => {});
-      await engine.persistSaves();
-      sessionStorage.setItem("ultimatum-last-lifecycle-save-v1", JSON.stringify({reason,at:Date.now(),moves:latestState.moves || 0}));
-    } catch (error) {
-      console.error(`Could not secure browser lifecycle state (${reason})`,error);
-    } finally {
-      lifecycleSecuring = null;
+async function secureActiveAdventure() {
+  if (latestState.canSave && adventures.activeSlot && !adventures.pendingCheckpoint) {
+    const saved = engine.saveAdventure();
+    if (saved > 0) {
+      const secured = engine.snapshot();
+      adventures.saveRevision = secured.saveRevision;
+      adventures.lastSavedMoves = secured.moves;
+      await adventures.capture("");
     }
-  })();
+  }
+  await adventures.saveQueue.catch(() => {});
+}
+
+async function secureLifecycle(reason, shutdown = false) {
+  if (!engineReady) return;
+  if (lifecycleSecuring) {
+    if (shutdown) return lifecycleSecuring.then(() => secureLifecycle(reason, true));
+    return lifecycleSecuring;
+  }
+  const operation = shutdown ? sessionOrchestrator.shutdown(reason) : sessionOrchestrator.suspend(reason);
+  lifecycleSecuring = operation.then(result => {
+    sessionStorage.setItem("ultimatum-last-lifecycle-save-v1", JSON.stringify({reason,at:Date.now(),moves:latestState.moves || 0}));
+    return result;
+  }).catch(error => {
+    console.error(`Could not secure browser lifecycle state (${reason})`,error);
+  }).finally(() => {
+    lifecycleSecuring = null;
+  });
   return lifecycleSecuring;
+}
+
+function resumeLifecycle(reason) {
+  if (!engineStarted) return;
+  sessionOrchestrator.resume(reason).then(() => render(engine.snapshot())).catch(error => {
+    console.error(`Could not resume browser lifecycle state (${reason})`,error);
+  });
 }
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") secureLifecycle("hidden");
-  else if (engineStarted) {
-    engine.startPolling(render,handleEngineReadError);
-    render(engine.snapshot());
-  }
+  else resumeLifecycle("visible");
 });
-window.addEventListener("pagehide", () => { secureLifecycle("pagehide"); });
+window.addEventListener("pagehide", event => {
+  if (!event.persisted) sessionOrchestrator.releaseLease().catch(error => console.error("Could not release the outgoing session lease",error));
+  secureLifecycle("pagehide", !event.persisted);
+});
 window.addEventListener("pageshow", event => {
   if (event.persisted && engineStarted) {
-    engine.startPolling(render,handleEngineReadError);
-    render(engine.snapshot());
+    resumeLifecycle("pageshow");
     toast("Game resumed.");
   }
 });
-document.addEventListener("freeze", () => { engine.stopPolling(); secureLifecycle("freeze"); });
-document.addEventListener("resume", () => {
-  if (engineStarted) { engine.startPolling(render,handleEngineReadError); render(engine.snapshot()); }
-});
+document.addEventListener("freeze", () => { secureLifecycle("freeze"); });
+document.addEventListener("resume", () => { resumeLifecycle("resume"); });
 setInterval(() => {
   if (!document.hidden && engineReady && latestState.canSave && adventures.activeSlot &&
-      !adventures.pendingCheckpoint && latestState.moves !== adventures.lastSavedMoves) engine.requestCheckpoint();
+      !adventures.pendingCheckpoint && latestState.moves !== adventures.lastSavedMoves) {
+    sessionOrchestrator.requestCheckpoint("periodic").catch(error => console.error("Automatic checkpoint request failed",error));
+  }
 },15000);
 document.addEventListener("pointerdown", () => { navigator.storage?.persist?.().catch(()=>{}); }, {once:true,capture:true});
 

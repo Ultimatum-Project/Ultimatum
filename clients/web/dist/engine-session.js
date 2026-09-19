@@ -21,12 +21,15 @@
       this.client = client;
       this.contractVersion = "1";
       this.sessionId = options.sessionId || `web-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      this.startMode = "handoff";
       this.intentIds = new Set();
       this.lastSequence = -1;
       this.dispatchTail = Promise.resolve();
       this.subscription = null;
       this.paused = false;
       this.closed = false;
+      this.started = false;
+      this.lastSnapshot = {contractVersion:1, ready:false, inputMode:"loading", capabilities:{}, prompt:{kind:"loading", id:0}};
       return new Proxy(this, {
         get(target, property, receiver) {
           if (Reflect.has(target, property)) {
@@ -42,14 +45,18 @@
     start(options = {}) {
       requireValue(!this.closed, "the session is closed");
       const restoreSave = typeof options === "boolean" ? options : Boolean(options.restoreSave);
-      return this.client.start(restoreSave);
+      const result = this.client.start(restoreSave);
+      this.started = true;
+      return result;
     }
 
     getSnapshot() {
+      if (!this.started) return this.lastSnapshot;
       const snapshot = this.client.snapshot();
       if (snapshot && snapshot.contractVersion !== 1)
         throw new Error(`Unsupported engine contract version: ${snapshot.contractVersion ?? "missing"}`);
-      return snapshot;
+      if (snapshot) this.lastSnapshot = snapshot;
+      return snapshot || this.lastSnapshot;
     }
 
     snapshot() { return this.getSnapshot(); }
@@ -112,6 +119,7 @@
 
     async shutdown() {
       this.closed = true;
+      this.started = false;
       this.client.stopPolling();
       await this.client.persistSaves();
     }

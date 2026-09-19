@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/session-progress-v1.schema.json",
+  "title": "Ultimatum session progress event",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["contractVersion", "sessionId", "state", "previousState", "at"],
+  "properties": {
+    "contractVersion": { "const": 1 },
+    "sessionId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "state": { "$ref": "#/$defs/state" },
+    "previousState": { "$ref": "#/$defs/state" },
+    "at": { "type": "string", "format": "date-time" },
+    "detail": { "type": ["object", "null"] }
+  },
+  "$defs": {
+    "state": {
+      "enum": ["idle", "preflighting", "mounting", "loading", "running", "paused", "quiescing", "flushing", "stopped", "recoverable-error", "fatal-error"]
+    }
+  }
+}

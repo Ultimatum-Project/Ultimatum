@@ -12,5 +12,10 @@ The Ultima IV manifest intentionally distinguishes the browser's full semantic
 surface from the native lifecycle-compatibility surface; it does not claim that
 the native host exposes browser snapshot or intent APIs that it does not use.
 
+The platform-level lifecycle around this contract is implemented separately in
+`packages/session-orchestrator`. Keeping the layers separate lets an adapter
+serialize engine-specific intents while the platform coordinates launch,
+lifecycle, leases, flushes, diagnostics, and host resource release.
+
 Later extraction can replace the wrapper without changing the snapshot schema
 or allowing the shell to re-enter an Asyncify-yielding engine directly.

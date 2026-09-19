@@ -1,0 +1,7 @@
+{
+  "name": "@ultimatum/catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/validate-catalog-entry.mjs"
+}

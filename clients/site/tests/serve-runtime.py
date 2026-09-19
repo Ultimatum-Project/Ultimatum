@@ -15,7 +15,7 @@ args = parser.parse_args()
 site = Path(__file__).resolve().parents[1]
 web = site.parent / "web"
 game = web / ".cache/game-data"
-manifest_text = (web / "dist/game-data-manifest.js").read_text()
+manifest_text = (web / "dist/game-data-manifest.js").read_text(encoding="utf-8")
 manifest = json.loads(manifest_text.split("const manifest = ",1)[1].split(";\n",1)[0])
 
 def fixture(kind):
@@ -68,7 +68,7 @@ class Handler(SimpleHTTPRequestHandler):
         if name in ("/runtime/responsive.html","/runtime/responsive.js"):
             self.send_bytes((site / "tests" / Path(name).name).read_bytes(),"text/html" if name.endswith("html") else "text/javascript")
         elif name == "/runtime/home.html":
-            text=(site / "build/index.html").read_text().replace("<head>",'<head><base href="/">')
+            text=(site / "build/index.html").read_text(encoding="utf-8").replace("<head>",'<head><base href="/">')
             self.send_bytes(text.encode(),"text/html; charset=utf-8")
         elif name == "/runtime/overlay.zip":
             self.send_bytes((web / ".cache/assets/u4upgrad-1.3.zip").read_bytes(),"application/zip")
@@ -83,7 +83,7 @@ class Handler(SimpleHTTPRequestHandler):
         elif name == "/runtime/audio-safety-bootstrap.js":
             self.send_bytes((site / "tests/audio-safety-bootstrap.js").read_bytes(),"text/javascript")
         elif name == "/runtime/index.html":
-            text=(site / "build/play/index.html").read_text().replace("<head>",'<head><base href="/play/"><script src="/runtime/audio-safety-bootstrap.js"></script>').replace("</body>",'<script src="/runtime/driver.js"></script></body>')
+            text=(site / "build/play/index.html").read_text(encoding="utf-8").replace("<head>",'<head><base href="/play/"><script src="/runtime/audio-safety-bootstrap.js"></script>').replace("</body>",'<script src="/runtime/driver.js"></script></body>')
             self.send_bytes(text.encode(),"text/html; charset=utf-8")
         else: super().do_GET()
 

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatum-project.org/schemas/library-record-v1.schema.json",
+  "title": "Ultimatum local-library record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "gameId", "portId", "state", "installation", "activity", "selection", "sync", "compatibility"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "gameId": { "$ref": "#/$defs/id" },
+    "portId": { "$ref": "#/$defs/id" },
+    "state": { "enum": ["not-installed", "importing", "playable", "update-available", "repair-required", "unsupported-host", "compatibility-disabled"] },
+    "installation": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["installId", "editionId", "importProfileId", "storageProviderId", "logicalBytes", "installedAt", "validatedAt"],
+          "properties": {
+            "installId": { "$ref": "#/$defs/id" },
+            "editionId": { "$ref": "#/$defs/id" },
+            "importProfileId": { "$ref": "#/$defs/profileId" },
+            "storageProviderId": { "$ref": "#/$defs/id" },
+            "logicalBytes": { "type": "integer", "minimum": 0 },
+            "installedAt": { "$ref": "#/$defs/nullableDate" },
+            "validatedAt": { "$ref": "#/$defs/nullableDate" }
+          }
+        }
+      ]
+    },
+    "activity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lastPlayedAt", "playtimeSeconds", "favorite"],
+      "properties": {
+        "lastPlayedAt": { "$ref": "#/$defs/nullableDate" },
+        "playtimeSeconds": { "type": "integer", "minimum": 0 },
+        "favorite": { "type": "boolean" }
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["engineChannel", "controlProfileId"],
+      "properties": {
+        "engineChannel": { "$ref": "#/$defs/id" },
+        "controlProfileId": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }] }
+      }
+    },
+    "sync": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state"],
+      "properties": { "state": { "enum": ["local-only", "cloud-known", "synced", "pending", "conflict", "error"] } }
+    },
+    "compatibility": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "requiresMigration", "reasons"],
+      "properties": {
+        "source": { "enum": ["native", "indexeddb-compatibility", "opfs", "memory"] },
+        "requiresMigration": { "type": "boolean" },
+        "reasons": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 300 } }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "profileId": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$", "maxLength": 120 },
+    "nullableDate": { "oneOf": [{ "type": "null" }, { "type": "string", "format": "date-time" }] }
+  }
+}

@@ -150,7 +150,7 @@ test("the web shell is wired to the engine canvas and real panels", () => {
   assert.doesNotMatch(engineClient, /analyzePath/);
   assert.doesNotMatch(read("dist/journal-ui.js"), /analyzePath/);
   assert.match(app, /await engine\.persistSaves\(\)/);
-  assert.match(app, /await gameDataImporter\.prepare\(record\)/);
+  assert.match(app, /await installationOrchestrator\.install\(record\)/);
   assert.match(app, /new URLSearchParams\(location\.search\).*account/);
   assert.match(app, /adventures\.deferUntilAccountClose\(showRequiredData\)/);
   assert.match(app, /ui\.dataAccount\.addEventListener\("click", openAccountFromData\)/);
@@ -451,7 +451,8 @@ test("EngineClient exposes semantic combat, dungeon and exploration map operatio
 test("the web shell protects active adventures across backgrounding and tab reloads", () => {
   const app=read("dist/app.js"), adventures=read("dist/adventure-ui.js"), html=read("dist/index.html");
   assert.match(app,/secureLifecycle\("hidden"\)/);
-  assert.match(app,/secureLifecycle\("pagehide"\)/);
+  assert.match(app,/sessionOrchestrator\.releaseLease\(\)/);
+  assert.match(app,/secureLifecycle\("pagehide", !event\.persisted\)/);
   assert.match(app,/secureLifecycle\("freeze"\)/);
   assert.match(app,/event\.persisted/);
   assert.match(app,/navigator\.storage\?\.persist/);

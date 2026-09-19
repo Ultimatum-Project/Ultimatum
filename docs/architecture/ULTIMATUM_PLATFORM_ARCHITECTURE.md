@@ -1040,6 +1040,40 @@ unimplemented compatibility boundary.
 
 ### Phase 1 — local-first platform MVP
 
+**Phase 1.1 foundation implemented:** Versioned catalog-entry and local-library
+record schemas and executable validators are checked in under `packages/`.
+Ultima IV now has a platform-owned catalog entry that is conformance-checked
+against its port descriptor. The active browser client projects its unchanged
+IndexedDB game-data record into the shared library states through the
+compatibility provider; this projection performs no writes or migration.
+
+**Phase 1.2 import orchestration implemented:** The active folder, ZIP, URL,
+and private cloud-package paths run through the shared installation
+orchestrator. The port adapter owns detection and validation; the platform owns
+staging, cancellation, progress, runtime rollback, and publication. New browser
+imports atomically commit source data with a durable install record in the
+existing IndexedDB transaction, while older records remain readable without a
+database migration.
+
+**Phase 1.3 session orchestration implemented:** The active browser client now
+runs its compatibility `EngineSession` through the shared session orchestrator.
+The platform owns preflight, logical mounting, loading, structured progress,
+single-writer Web Lock acquisition where supported, lifecycle serialization,
+pause/checkpoint/quiesce/flush/resume ordering, error diagnostics, and resource
+release. The xu4 adapter continues to own Asyncify-safe semantic execution and
+the existing save UI continues to own durable adventure publication. Existing
+save records and `.u4save` v1 packages are unchanged.
+
+**Phase 1.4 experimental OPFS provider implemented:** The browser host now has
+a shared executable storage-provider contract covering transactions, reads,
+metadata, enumeration, and quota estimates. The unchanged IndexedDB library is
+the default compatibility provider. A namespaced OPFS byte provider is
+registered only as an experimental capability: it validates logical paths,
+serializes staged commits, and rolls an in-process failed publication back to
+the prior bytes. It truthfully declares that browser OPFS does not provide a
+general crash-atomic multi-file transaction. No existing install or save is
+copied, opted in, or deleted, and no database migration is performed.
+
 - Shared single-game catalog template and local library model.
 - Generic import orchestration and install records.
 - IndexedDB compatibility provider plus an experimental OPFS provider behind the same contract.

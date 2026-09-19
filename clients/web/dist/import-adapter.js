@@ -8,6 +8,7 @@
       if (!gameData?.validate || typeof extractZip !== "function") throw new TypeError("Ultima IV import validation and ZIP extraction are required.");
       this.id = "ultima4-web-compat-v1";
       this.gameId = "ultima4";
+      this.portId = "xu4";
       this.gameData = gameData;
       this.extractZip = extractZip;
       this.maxZipBytes = maxZipBytes;
@@ -58,6 +59,8 @@
         contractVersion: 1,
         adapterId: this.id,
         gameId: this.gameId,
+        portId: this.portId,
+        installId: "ultima4-default",
         editionId: match.editionId,
         profileId: match.profileId,
         logicalBytes,

@@ -1,0 +1,7 @@
+{
+  "name": "@ultimatum/import-framework",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": "./src/installation-orchestrator.js"
+}

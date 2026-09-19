@@ -2,6 +2,18 @@ const canvas = document.querySelector("#worldCanvas");
 const engineCanvas = document.querySelector("#engineCanvas");
 const worldContext = canvas.getContext("2d", { alpha: false });
 const ui = Object.fromEntries([...document.querySelectorAll("[id]")].map(element => [element.id, element]));
+const overlayHost = new window.UltimatumWebOverlayHost({fallbackFocus:canvas,manifestUrl:"overlays.manifest.json"});
+for(const definition of [
+  {id:"adventure",element:ui.adventureDialog,modality:"modal",initialFocus:()=>ui.adventureDialog.querySelector("button:not(:disabled)")},
+  {id:"game-data",element:ui.dataDialog,modality:"modal",initialFocus:()=>ui.closeDataButton.hidden?ui.gameFolderInput:ui.closeDataButton},
+  {id:"journal",element:ui.journalDialog,modality:"modal",initialFocus:()=>ui.journalClose},
+  {id:"exploration-map",element:ui.mapDialog,modality:"modal",initialFocus:()=>ui.mapClose},
+  {id:"feedback",element:ui.feedbackDialog,modality:"modal",initialFocus:()=>ui.feedbackMessage},
+  {id:"account",element:ui.cloudDialog,modality:"modal",initialFocus:()=>ui.cloudPanel.querySelector("button,input")},
+  {id:"information-drawer",element:ui.sidePanel,modality:"nonmodal",isOpen:element=>element.classList.contains("mobile-open"),openElement:element=>{element.classList.add("mobile-open");ui.sheetBackdrop.hidden=false;document.body.classList.add("panel-open");},closeElement:element=>{element.classList.remove("mobile-open");ui.sheetBackdrop.hidden=true;document.body.classList.remove("panel-open");},initialFocus:()=>ui.mobileSheetClose},
+])overlayHost.register(definition);
+const overlayManifestReady=overlayHost.load("web");
+window.ultimatumOverlayDiagnostics = async () => {await overlayManifestReady;return overlayHost.diagnostics();};
 const cloudConfigured=Boolean(window.UltimatumCloudConfig?.url&&window.UltimatumCloudConfig?.key);
 const runtimeModule = () => document.ultimatumRuntimeModule || window.UltimatumRuntimeModule || window.Module;
 const engine = new window.UltimatumEngineSession(new window.UltimatumEngineClient(runtimeModule));
@@ -40,12 +52,14 @@ window.ultimatumControlDiagnostics = () => controlRegistry.inspect("web");
 window.ultimatumDiagnostics = async () => {
   const [storage,settings,controls]=await Promise.all([window.ultimatumStorageDiagnostics(),window.ultimatumSettingsDiagnostics(),window.ultimatumControlDiagnostics()]);
   const session=sessionOrchestrator.diagnostics();
+  const overlays=await window.ultimatumOverlayDiagnostics();
   return diagnostics.bundle({
     host:{kind:"web",online:navigator.onLine,"storage-api":Boolean(navigator.storage)},
     session:{state:session.state,"lease-supported":session.leaseSupported,"lease-acquired":session.leaseAcquired},
     storage:{provider:storage.defaultProvider,"opfs-supported":storage.experimentalOpfs.supported,"opfs-selected":storage.experimentalOpfs.selected,"usage-bytes":storage.estimate?.usage,"quota-bytes":storage.estimate?.quota,"migration-performed":storage.migrationPerformed},
     settings:{"schema-version":settings.schemaVersion,"settings-version":settings.settingsVersion,"unavailable-count":settings.unavailable.length,"migration-performed":settings.migrationPerformed},
     controls:{"schema-version":controls.schemaVersion,"actions-version":controls.actionsVersion,"action-count":controls.actionCount,"verified-profile-count":controls.profiles.length,"migration-performed":controls.migrationPerformed},
+    overlays:{registered:overlays.registered,"active-count":overlays.active.length},
   });
 };
 const gameDataImporter = new window.UltimaIVImportAdapter({
@@ -73,11 +87,13 @@ const adventures = new window.UltimatumAdventureUI(engine, {
   gameData: () => localGameDataForCloud(),
   installGameData: text => installCloudGameData(text),
   whenRuntimeReady: () => waitForRuntimeFilesystem(),
+  overlays: overlayHost,
 });
 const journalUI = new window.UltimatumJournalUI(engine, {
   toast: message=>toast(message),persist:()=>adventures.persistJournal(),
   legacyHistory:()=>conversationHistory,
   resume:()=>render(engine.snapshot()),
+  overlays:overlayHost,
 });
 const modalBackground = [...document.querySelectorAll(".topbar, .command-bar, .mode-command-bar, .mobile-control-deck, #sidePanel")];
 const mobileLayout = window.matchMedia("(max-width: 650px), (max-width: 980px) and (max-height: 500px)");
@@ -101,7 +117,6 @@ let runtimeFilesystemResolve;
 const runtimeFilesystemReady = new Promise(resolve => { runtimeFilesystemResolve = resolve; });
 let latestState = { ready: false, inputMode: "loading", messages: [], party: [], spells: [] };
 let toastTimer;
-let panelTrigger = null;
 let pendingSpell = null;
 let conversationExit = null;
 let selectedPartyMember = null;
@@ -221,12 +236,12 @@ async function startEngine(restoreSave) {
 function showDataDialog(required = false) {
   ui.dataDialog.classList.toggle("required", required);
   ui.closeDataButton.hidden = required;
-  if (!ui.dataDialog.open) ui.dataDialog.showModal();
+  overlayHost.open("game-data",{replace:true});
 }
 
 function openAccountFromData() {
   const required=ui.dataDialog.classList.contains("required");
-  ui.dataDialog.close();
+  overlayHost.close("game-data",{restoreFocus:false});
   const returnFromAccount=async()=>{
     if(required&&engine.hasGameData())await adventures.prepare();
     else showDataDialog(required);
@@ -244,7 +259,7 @@ async function activateGamePackage(record, description) {
     return;
   }
   setImportStatus(`${description} is ready.${notes} Continue a saved game or start a new one.`, "success");
-  ui.dataDialog.close();
+  overlayHost.close("game-data",{restoreFocus:false});
   await adventures.prepare();
 }
 
@@ -553,7 +568,7 @@ function renderMapMarkers(map) {
   ui.mapMarkers.append(player);
 }
 
-function openExplorationMap() {
+function openExplorationMap(event) {
   if (!engineReady) return toast("The engine is still waking up.");
   const map = engine.explorationMap();
   if (!map) return toast("The exploration map is unavailable here.");
@@ -567,14 +582,12 @@ function openExplorationMap() {
   ui.mapSubtitle.textContent = map.kind === 2 ? "North-up view of this adventure's explored cells on the current floor." : "Only explored terrain and visited places are shown. Select an explored cell to add or edit a pin.";
   ui.mapLegend.textContent = map.kind === 2 ? "Red marks the party. Cyan marks ladders; gold marks rooms and landmarks." : `${(latestState.mapDiscoveries || []).length} discovered places · ${(latestState.mapPins || []).length}/24 pins · red marks the party.`;
   renderMapMarkers(map);
-  ui.mapDialog.showModal();
-  ui.mapClose.focus({preventScroll:true});
+  overlayHost.open("exploration-map",{trigger:event?.currentTarget});
 }
 
 function closeExplorationMap() {
   if (!ui.mapDialog.open) return;
-  ui.mapDialog.close();
-  canvas.focus({preventScroll:true});
+  overlayHost.close("exploration-map");
 }
 
 function chooseMapCell(event) {
@@ -1022,24 +1035,16 @@ function selectPanel(panelId) {
 function openMobilePanel(panelId, trigger) {
   selectPanel(panelId);
   if (!mobileLayout.matches) return;
-  panelTrigger = trigger;
-  ui.sidePanel.classList.add("mobile-open");
-  ui.sheetBackdrop.hidden = false;
-  document.body.classList.add("panel-open");
+  overlayHost.open("information-drawer",{trigger});
   document.querySelectorAll("[data-open-panel]").forEach(button => {
     button.setAttribute("aria-expanded", String(button.dataset.openPanel === panelId));
   });
-  ui.mobileSheetClose.focus({ preventScroll: true });
 }
 
 function closeMobilePanel() {
   if (!ui.sidePanel.classList.contains("mobile-open")) return false;
-  ui.sidePanel.classList.remove("mobile-open");
-  ui.sheetBackdrop.hidden = true;
-  document.body.classList.remove("panel-open");
+  overlayHost.close("information-drawer");
   document.querySelectorAll("[data-open-panel]").forEach(button => button.setAttribute("aria-expanded", "false"));
-  panelTrigger?.focus({ preventScroll: true });
-  panelTrigger = null;
   return true;
 }
 
@@ -1274,21 +1279,14 @@ function setFeedbackStatus(message, state = "") {
   ui.feedbackStatus.dataset.state = state;
 }
 
-let feedbackReturnDialog = null;
 function openFeedback() {
   closeMobilePanel();
   setFeedbackStatus("");
-  feedbackReturnDialog = [ui.adventureDialog, ui.dataDialog].find(dialog => dialog.open) || null;
-  feedbackReturnDialog?.close();
-  if (!ui.feedbackDialog.open) ui.feedbackDialog.showModal();
-  ui.feedbackMessage.focus();
+  overlayHost.open("feedback",{replace:true});
 }
 
 function closeFeedback() {
-  ui.feedbackDialog.close();
-  const dialog = feedbackReturnDialog;
-  feedbackReturnDialog = null;
-  if (dialog && !dialog.open) dialog.showModal();
+  overlayHost.close("feedback");
 }
 
 document.querySelectorAll("#feedbackButton, [data-open-feedback]").forEach(button => button.addEventListener("click", openFeedback));
@@ -1299,7 +1297,7 @@ ui.feedbackDialog.addEventListener("cancel", event => { event.preventDefault(); 
 ui.feedbackMessage.addEventListener("input", () => { ui.feedbackLength.textContent = ui.feedbackMessage.value.length; });
 ui.feedbackForm.addEventListener("submit", async event => {
   event.preventDefault();
-  if (ui.feedbackWebsite.value) return ui.feedbackDialog.close();
+  if (ui.feedbackWebsite.value) return closeFeedback();
   const message = ui.feedbackMessage.value.trim();
   if (message.length < 20) return setFeedbackStatus("Please add a little more detail so we can act on it.", "error");
   ui.sendFeedbackButton.disabled = true;
@@ -1336,10 +1334,11 @@ ui.dataButton.addEventListener("click", openDataLibrary);
 ui.mobileDataButton.addEventListener("click", openDataLibrary);
 ui.menuButton.addEventListener("click", openGameMenu);
 ui.mobileMenuButton.addEventListener("click", openGameMenu);
-ui.closeDataButton.addEventListener("click", () => ui.dataDialog.close());
+ui.closeDataButton.addEventListener("click", () => overlayHost.close("game-data"));
 ui.dataAccount.addEventListener("click", openAccountFromData);
 ui.dataDialog.addEventListener("cancel", event => {
-  if (!engineStarted && (!runtimeReady || !engine.hasGameData())) event.preventDefault();
+  event.preventDefault();
+  if (engineStarted || (runtimeReady && engine.hasGameData())) overlayHost.close("game-data");
 });
 ui.reloadDataButton.addEventListener("click", () => window.location.reload());
 

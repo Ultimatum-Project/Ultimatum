@@ -135,7 +135,14 @@
     const serializedSupport=JSON.stringify(support);
     assert(support.contractVersion===1&&support.privacy.localOnly&&!support.privacy.sensitiveArtifactsIncluded&&support.events.some(event=>event.code==="session.state-change"),"Structured local diagnostics assemble a bounded redacted support snapshot");
     assert(!/PublicHero|party\.sav|conversation|journal|screenshot|input-stream/i.test(serializedSupport),"Support snapshot excludes adventure data, typed text, input streams and screenshots");
+    const overlayState=await window.ultimatumOverlayDiagnostics();
+    assert(overlayState.manifestLoaded&&overlayState.overlaysVersion===1&&overlayState.registered===7&&overlayState.events.some(event=>event.type==="suspend")&&overlayState.events.some(event=>event.type==="resume"),"Shared overlay host replaces and restores platform surfaces through one declared lifecycle");
     assert(state().vgaAvailable && state().video==="vga" && !(await library.get("optional-overlay")),"New adventure runs in VGA without a separate patch upload");
+    await wait(()=>!ui.mapButton.disabled,"exploration map control becomes available");
+    ui.mapButton.click();
+    await wait(()=>ui.mapDialog.open,"shared host opens the exploration map");
+    ui.mapClose.click();
+    assert(!ui.mapDialog.open&&document.activeElement===ui.mapButton,"Closing a port overlay restores focus to its invoking control");
     for(let i=0;i<2;i++) {
       const before=state().moves;document.querySelector('[data-key="32"]').click();
       await wait(()=>state().inputMode==="command" && state().moves===before+1,"Wait advances one safe turn");

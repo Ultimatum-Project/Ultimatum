@@ -33,3 +33,8 @@ device preferences are not portable adventure data.
 host may record. The shared diagnostics package controls redaction and excludes
 game data, saves, typed text, input streams, screenshots and local paths from
 support snapshots.
+
+`overlays.manifest.json` separates platform-owned dialogs and drawers from the
+port-owned Journal and exploration map, with explicit modality, world-context,
+gameplay and dismissal policies. The web overlay host manages presentation and
+focus; xu4 still owns journal pause/resume and game-specific legality.

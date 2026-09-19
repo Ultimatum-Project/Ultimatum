@@ -19,6 +19,7 @@ test("the Ultima IV port descriptor passes the executable adapter contract", asy
   assert.ok(fs.existsSync(path.join(repo,manifest.settingsManifest)));
   assert.ok(fs.existsSync(path.join(repo,manifest.controlsManifest)));
   assert.ok(fs.existsSync(path.join(repo,manifest.diagnosticsManifest)));
+  assert.ok(fs.existsSync(path.join(repo,manifest.overlaysManifest)));
 });
 
 test("the Ultima IV catalog entry passes the shared catalog contract", async () => {
@@ -100,6 +101,32 @@ test("structured diagnostics validate port codes and redact support snapshots by
   assert.equal(bundle.sections.notes,"[redacted]");
   assert.ok(bundle.events.every(event=>!Object.hasOwn(event.details,"input")&&!Object.hasOwn(event.details,"token")&&!Object.hasOwn(event.details,"path")&&!Object.hasOwn(event.details,"message")));
   assert.throws(()=>collector.record({component:"session",code:"invalid code"}),/code is invalid/);
+});
+
+test("shared overlays validate lifecycle policy and restore replaced surfaces and focus",async()=>{
+  const port=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/port.manifest.json"),"utf8"));
+  const manifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/overlays.manifest.json"),"utf8"));
+  const validator=await import(pathToFileURL(path.join(repo,"packages/ui/src/validate-overlay-manifest.mjs")));
+  assert.equal(validator.validateOverlayManifest(manifest,{portDescriptor:port}),manifest);
+  assert.equal(manifest.overlays.length,7);
+  assert.ok(manifest.overlays.filter(overlay=>overlay.gameplayPolicy==="port-paused").every(overlay=>overlay.owner==="port"));
+  assert.throws(()=>validator.validateOverlayManifest({...manifest,overlays:[...manifest.overlays,{...manifest.overlays[0]}]},{portDescriptor:port}),/duplicate/);
+  assert.throws(()=>validator.validateOverlayManifest({...manifest,overlays:manifest.overlays.map(overlay=>overlay.id==="information-drawer"?{...overlay,modality:"modal"}:overlay)},{portDescriptor:port}),/drawers must be nonmodal/);
+  const {WebOverlayHost}=require(path.join(repo,"packages/ui/src/web-overlay-host.js"));
+  const element=()=>({dataset:{},open:false,listeners:{},addEventListener(type,listener){this.listeners[type]=listener;},showModal(){this.open=true;},close(){this.open=false;this.listeners.close?.();}});
+  const adventure=element(),data=element(),drawer={dataset:{},active:false};let focused=0;
+  const trigger={focus(){focused++;}};
+  const host=new WebOverlayHost({now:()=>"2026-09-18T00:00:00Z"});
+  host.register({id:"adventure",element:adventure,modality:"modal"});
+  host.register({id:"game-data",element:data,modality:"modal"});
+  host.register({id:"information-drawer",element:drawer,modality:"nonmodal",isOpen:item=>item.active,openElement:item=>{item.active=true;},closeElement:item=>{item.active=false;}});
+  host.open("adventure");
+  assert.throws(()=>host.open("game-data"),/cannot open/);
+  host.open("game-data",{trigger,replace:true});
+  assert.equal(adventure.open,false);assert.equal(data.open,true);assert.equal(host.diagnostics().overlays.find(item=>item.id==="adventure").suspended,true);
+  host.open("information-drawer");assert.equal(drawer.active,true,"nonmodal drawers can coexist with a dialog");
+  data.close();assert.equal(adventure.open,true,"a legacy direct close is reconciled and restores the prior surface");assert.equal(focused,1,"focus returns to the launching control");
+  host.close("information-drawer");assert.equal(drawer.active,false);
 });
 
 test("web and native save providers declare the shared SaveStore v1 semantics",async()=>{
@@ -419,6 +446,8 @@ test("the active web app uses compatibility import and library boundaries",()=>{
   assert.match(app,/ultimatumControlDiagnostics/);
   assert.match(app,/new window\.UltimatumDiagnosticsCollector/);
   assert.match(app,/ultimatumDiagnostics/);
+  assert.match(app,/new window\.UltimatumWebOverlayHost/);
+  assert.match(app,/ultimatumOverlayDiagnostics/);
   assert.match(app,/new window\.UltimatumInstallationOrchestrator/);
   assert.match(app,/library\.inspect\("ultima4","xu4"\)/);
   assert.match(app,/new window\.UltimaIVImportAdapter/);

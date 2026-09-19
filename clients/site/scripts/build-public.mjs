@@ -86,9 +86,11 @@ export async function build(options = {}) {
   await cp(path.join(repo,"packages/settings/src/settings-registry.js"),path.join(play,"settings-registry.js"));
   await cp(path.join(repo,"packages/input-system/src/control-registry.js"),path.join(play,"control-registry.js"));
   await cp(path.join(repo,"packages/diagnostics/src/diagnostics.js"),path.join(play,"diagnostics.js"));
+  await cp(path.join(repo,"packages/ui/src/web-overlay-host.js"),path.join(play,"web-overlay-host.js"));
   await cp(path.join(repo,"ports/ultima-iv/settings.manifest.json"),path.join(play,"settings.manifest.json"));
   await cp(path.join(repo,"ports/ultima-iv/controls.manifest.json"),path.join(play,"controls.manifest.json"));
   await cp(path.join(repo,"ports/ultima-iv/diagnostics.manifest.json"),path.join(play,"diagnostics.manifest.json"));
+  await cp(path.join(repo,"ports/ultima-iv/overlays.manifest.json"),path.join(play,"overlays.manifest.json"));
   await writeFile(path.join(play,"cloud-config.js"),renderCloudConfig(audience));
   // Old decorative sprite URLs are unnecessary in the engine-backed UI and
   // should not cause game-data images to be copied into the public shell.
@@ -115,7 +117,7 @@ export async function build(options = {}) {
   await mkdir(source,{recursive:true});
   await mkdir(licenses,{recursive:true});
   await cp(path.join(repo,".env.example"),path.join(source,".env.example"));
-  for (const directory of ["packages/adapter-sdk","packages/catalog","packages/diagnostics","packages/import-framework","packages/input-system","packages/library","packages/save-store","packages/semantic-session","packages/session-orchestrator","packages/settings","packages/storage","ports/ultima-iv"])
+  for (const directory of ["packages/adapter-sdk","packages/catalog","packages/diagnostics","packages/import-framework","packages/input-system","packages/library","packages/save-store","packages/semantic-session","packages/session-orchestrator","packages/settings","packages/storage","packages/ui","ports/ultima-iv"])
     await copyDirectory(path.join(repo,directory),path.join(source,directory));
   await cp(path.join(web,".cache/deps/libxml2/Copyright"),path.join(licenses,"libxml2.txt"));
   await cp(path.join(web,".cache/ports/SDL2/LICENSE.txt"),path.join(licenses,"SDL2.txt"));

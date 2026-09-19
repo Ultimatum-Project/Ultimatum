@@ -52,17 +52,25 @@
           installGameData:text=>hooks.installGameData?.(text),
           close:()=>this.closeAccount(),
         });
-        this.ui.adventureAccount.addEventListener('click',()=>this.openAccount());
+        this.ui.adventureAccount.addEventListener('click',event=>this.openAccount(null,event.currentTarget));
         cloudDialog.addEventListener('cancel',event=>{event.preventDefault();if(this.cloudUI.confirmation)this.cloudUI.cancel();else if(!this.cloudUI.installing)this.closeAccount();});
         document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')this.cloudUI.syncSavedAdventure().catch(error=>console.warn('Cloud sync deferred',error));});
       } else this.ui.adventureAccount.hidden=true;
-      this.ui.adventureDialog.showModal();
+      this.openOverlay("adventure");
     }
-    openAccount(afterClose=null) {
+    openOverlay(id,options={}) {
+      if(this.hooks.overlays)return this.hooks.overlays.open(id,options);
+      const dialog=document.querySelector(id==="adventure"?'#adventureDialog':'#cloudDialog');if(!dialog.open)dialog.showModal();return true;
+    }
+    closeOverlay(id,options={}) {
+      if(this.hooks.overlays)return this.hooks.overlays.close(id,options);
+      const dialog=document.querySelector(id==="adventure"?'#adventureDialog':'#cloudDialog');if(dialog.open)dialog.close();return true;
+    }
+    openAccount(afterClose=null,trigger=null) {
       const cloudDialog=document.querySelector('#cloudDialog');
       if(!this.cloudUI||!cloudDialog)return false;
       if(afterClose!==null||!cloudDialog.open)this.afterAccountClose=afterClose;
-      if(!cloudDialog.open)cloudDialog.showModal();
+      this.openOverlay("account",{trigger,replace:true});
       this.cloudUI.run(()=>this.cloudUI.refresh());
       return true;
     }
@@ -75,7 +83,7 @@
     closeAccount() {
       const cloudDialog=document.querySelector('#cloudDialog');
       if(!cloudDialog?.open)return;
-      cloudDialog.close();
+      this.closeOverlay("account");
       const afterClose=this.afterAccountClose;this.afterAccountClose=null;
       this.run(async()=>{await this.show(this.mode);if(afterClose)await afterClose();});
     }
@@ -138,7 +146,7 @@
       this.ui.adventureSaveHelp.hidden=mode!=="manage" && !this.detailsSlot;
       this.ui.adventureExportPending.hidden=!this.pendingCheckpoint;
       this.ui.adventureSaveNow.dataset.unavailable=String(!this.hooks.state().prompt?.options?.some(option=>option.value==="save"));
-      if(!this.ui.adventureDialog.open) this.ui.adventureDialog.showModal();
+      this.openOverlay("adventure");
       this.records=await this.store.list();
       this.ui.adventureSlots.replaceChildren();
       const firstEmpty=[1,2,3].find(slot=>!this.records.some(record=>record.slot===slot));
@@ -177,7 +185,7 @@
         if(mode==="title" && this.detailsSlot===slot) add("done","Done");
         card.append(heading,details,buttons);this.ui.adventureSlots.append(card);
       }
-      if(!this.ui.adventureDialog.open) this.ui.adventureDialog.showModal();
+      this.openOverlay("adventure");
       this.disable(this.busy);
     }
     async cloudSlots() {
@@ -259,7 +267,7 @@
       this.newGame=action==="new";this.sawCreationPrompt=false;
       this.lastSavedMoves=record?.current?.summary?.moves || 0;
       this.engine.writeAdventureFiles(action==="continue" ? record.current.files : {});
-      this.ui.adventureDialog.close();
+      this.closeOverlay("adventure",{restoreFocus:false});
       if(action==="continue") sessionStorage.setItem(ACTIVE_SESSION,JSON.stringify({slot,startedAt:Date.now()}));
       if(await this.hooks.start(action==="continue")===false) return;
       this.cloudUI?.cloud.event('game_session_started',{game:'ultima4',platform:'web',action}).catch(error=>console.warn('Play session metric deferred',error));
@@ -275,7 +283,7 @@
       if(this.busy || this.mode!=="manage") return;
       const state=this.hooks.state();
       if(!this.engine.submitAnswer(answer,state.prompt.id)) return this.status("The engine has moved on. Try opening Saved Games again.");
-      this.ui.adventureDialog.close();this.hooks.focus();
+      this.closeOverlay("adventure");this.hooks.focus();
     }
     async importFiles() {
       const selected=[...this.ui.adventureImport.files];this.ui.adventureImport.value="";

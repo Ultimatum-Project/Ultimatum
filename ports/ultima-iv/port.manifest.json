@@ -40,5 +40,7 @@
   "settingsManifest": "ports/ultima-iv/settings.manifest.json",
   "diagnosticsSchemaVersion": 1,
   "diagnosticsManifest": "ports/ultima-iv/diagnostics.manifest.json",
+  "overlaysSchemaVersion": 1,
+  "overlaysManifest": "ports/ultima-iv/overlays.manifest.json",
   "saveSchemaVersion": 1
 }

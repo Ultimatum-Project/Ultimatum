@@ -9,7 +9,7 @@
   const errors = [], results = [];
   window.addEventListener("error", e => errors.push(e.message));
   window.addEventListener("unhandledrejection", e => errors.push(String(e.reason)));
-  let phase = "prepare", generation, before, geometry, mobile = false, since = Date.now();
+  let phase = "prepare", generation, before, geometry, drawerTrigger, mobile = false, since = Date.now();
   const rect = selector => {
     const r = document.querySelector(selector).getBoundingClientRect();
     return {x:r.x,y:r.y,width:r.width,height:r.height};
@@ -79,10 +79,23 @@
         assert(sameGeometry(geometry,rect("#worldStage")),"Command resized the world");
         pass(phase === "search" ? "Search passes exactly one real engine turn" : "Wait passes exactly one real engine turn",{movesBefore:before.moves,movesAfter:s.moves});
         if(phase==="wait") {before=s;(mobile ? visible('[data-key="32"]') : visible('[data-key="115"]')).click();transition(mobile ? "wait-again" : "search");}
-        else {
+        else if(mobile) {
+          before=s;drawerTrigger=visible('[data-open-panel="partyPanel"]');assert(drawerTrigger,"Mobile party drawer trigger is unavailable");drawerTrigger.click();transition("drawer");
+        } else {
           before=s;
           [document.querySelector("#menuButton"),document.querySelector("#mobileMenuButton")].find(b=>b.getClientRects().length&&!b.disabled).click();transition("menu");
         }
+      } else if(phase==="drawer") {
+        if(!document.querySelector("#sidePanel").classList.contains("mobile-open")||Date.now()-since<150)return;
+        assert(!document.querySelector("#sheetBackdrop").hidden&&drawerTrigger.getAttribute("aria-expanded")==="true","Shared mobile drawer did not expose its active state");
+        assert(document.activeElement===document.querySelector("#mobileSheetClose"),"Mobile drawer did not focus its close control");
+        document.querySelector("#mobileSheetClose").click();transition("drawer-close");
+      } else if(phase==="drawer-close") {
+        if(document.querySelector("#sidePanel").classList.contains("mobile-open")||Date.now()-since<150)return;
+        assert(document.querySelector("#sheetBackdrop").hidden&&drawerTrigger.getAttribute("aria-expanded")==="false","Shared mobile drawer did not clear its active state");
+        assert(document.activeElement===drawerTrigger,"Mobile drawer did not return focus to its invoking control");
+        pass("Shared mobile drawer restores focus and main controls");
+        [document.querySelector("#menuButton"),document.querySelector("#mobileMenuButton")].find(b=>b.getClientRects().length&&!b.disabled).click();transition("menu");
       } else if (phase === "menu") {
         if(s.prompt.title!=="Menu" || Date.now()-since<250) return;
         assert(s.moves===before.moves && sameGeometry(geometry,rect("#worldStage")),"Menu shifted the world or consumed a turn");

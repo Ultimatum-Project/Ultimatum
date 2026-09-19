@@ -10,3 +10,5 @@ checked in alongside schema-backed typed settings and semantic control
 profiles. The descriptor points to the port manifests so hosts do not guess
 their locations. Phase 1.6 adds the port's stable diagnostic event declaration;
 collection, redaction and support-bundle assembly remain platform-owned.
+The descriptor also locates the Phase 1.7 overlay declaration so a host can
+render and manage port surfaces without guessing their lifecycle policy.

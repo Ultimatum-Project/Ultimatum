@@ -1,0 +1,16 @@
+{
+  "$schema": "../../packages/ui/schemas/overlay-manifest.schema.json",
+  "schemaVersion": 1,
+  "overlaysVersion": 1,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "overlays": [
+    { "id": "adventure", "owner": "platform", "surface": "dialog", "presentation": "full-screen", "modality": "modal", "worldContext": "hidden", "gameplayPolicy": "input-captured", "dismissPolicy": "conditional", "hosts": ["web"] },
+    { "id": "game-data", "owner": "platform", "surface": "dialog", "presentation": "full-screen", "modality": "modal", "worldContext": "hidden", "gameplayPolicy": "input-captured", "dismissPolicy": "conditional", "hosts": ["web"] },
+    { "id": "journal", "owner": "port", "surface": "dialog", "presentation": "adaptive", "modality": "modal", "worldContext": "adaptive", "gameplayPolicy": "port-paused", "dismissPolicy": "conditional", "hosts": ["web"] },
+    { "id": "exploration-map", "owner": "port", "surface": "dialog", "presentation": "partial-overlay", "modality": "modal", "worldContext": "visible", "gameplayPolicy": "input-captured", "dismissPolicy": "dismissible", "hosts": ["web"] },
+    { "id": "feedback", "owner": "platform", "surface": "dialog", "presentation": "full-screen", "modality": "modal", "worldContext": "hidden", "gameplayPolicy": "input-captured", "dismissPolicy": "dismissible", "hosts": ["web"] },
+    { "id": "account", "owner": "platform", "surface": "dialog", "presentation": "full-screen", "modality": "modal", "worldContext": "hidden", "gameplayPolicy": "input-captured", "dismissPolicy": "conditional", "hosts": ["web"] },
+    { "id": "information-drawer", "owner": "platform", "surface": "drawer", "presentation": "edge-drawer", "modality": "nonmodal", "worldContext": "visible", "gameplayPolicy": "continues", "dismissPolicy": "dismissible", "hosts": ["web"] }
+  ]
+}

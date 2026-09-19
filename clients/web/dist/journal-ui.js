@@ -32,14 +32,14 @@
       if(this.busy || this.ui.journalDialog.open)return;
       if(!this.engine.openJournal())return this.hooks.toast("Journal is available during exploration and conversations, outside combat.");
       this.trigger=trigger;this.data=this.engine.journal();this.source=null;this.editor=null;
-      this.ui.journalSearch.value="";this.status();this.render();this.ui.journalDialog.showModal();
-      this.ui.journalClose.focus({preventScroll:true});
+      this.ui.journalSearch.value="";this.status();this.render();
+      if(this.hooks.overlays)this.hooks.overlays.open("journal",{trigger});else{this.ui.journalDialog.showModal();this.ui.journalClose.focus({preventScroll:true});}
     }
     close() {
       if(this.busy)return;
       if(!this.engine.closeJournal())return this.status("The journal could not return control. Keep this tab open.");
-      this.editor=null;this.ui.journalDialog.close();this.hooks.resume();
-      this.trigger?.focus({preventScroll:true});
+      this.editor=null;if(this.hooks.overlays)this.hooks.overlays.close("journal");else this.ui.journalDialog.close();this.hooks.resume();
+      if(!this.hooks.overlays)this.trigger?.focus({preventScroll:true});
     }
     element(tag,text,className="") {
       const element=document.createElement(tag);element.textContent=text;element.className=className;return element;

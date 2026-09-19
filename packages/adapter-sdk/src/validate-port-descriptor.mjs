@@ -46,9 +46,9 @@ export function validatePortDescriptor(value) {
     requireValue(typeof capabilities[name] === "boolean", `capabilities.${name} must be boolean`);
   requireValue(Array.isArray(capabilities.rendering) && capabilities.rendering.length > 0, "rendering capabilities are required");
   requireValue(Array.isArray(capabilities.input) && capabilities.input.length > 0, "input capabilities are required");
-  for (const name of ["actionsSchemaVersion", "settingsSchemaVersion", "diagnosticsSchemaVersion", "saveSchemaVersion"])
+  for (const name of ["actionsSchemaVersion", "settingsSchemaVersion", "diagnosticsSchemaVersion", "overlaysSchemaVersion", "saveSchemaVersion"])
     requireValue(Number.isSafeInteger(value[name]) && value[name] > 0, `${name} must be a positive integer`);
-  for (const name of ["controlsManifest","settingsManifest","diagnosticsManifest"])
+  for (const name of ["controlsManifest","settingsManifest","diagnosticsManifest","overlaysManifest"])
     requireValue(typeof value[name]==="string"&&!value[name].startsWith("/")&&!value[name].includes("\\")&&!value[name].split("/").includes("..")&&value[name].endsWith(".json"),`${name} must be a safe repository JSON path`);
   return value;
 }

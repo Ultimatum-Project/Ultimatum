@@ -18,9 +18,11 @@ await cp(path.join(repo,"packages/storage/src/opfs-storage-provider.js"),path.jo
 await cp(path.join(repo,"packages/settings/src/settings-registry.js"),path.join(output,"settings-registry.js"));
 await cp(path.join(repo,"packages/input-system/src/control-registry.js"),path.join(output,"control-registry.js"));
 await cp(path.join(repo,"packages/diagnostics/src/diagnostics.js"),path.join(output,"diagnostics.js"));
+await cp(path.join(repo,"packages/ui/src/web-overlay-host.js"),path.join(output,"web-overlay-host.js"));
 await cp(path.join(repo,"ports/ultima-iv/settings.manifest.json"),path.join(output,"settings.manifest.json"));
 await cp(path.join(repo,"ports/ultima-iv/controls.manifest.json"),path.join(output,"controls.manifest.json"));
 await cp(path.join(repo,"ports/ultima-iv/diagnostics.manifest.json"),path.join(output,"diagnostics.manifest.json"));
+await cp(path.join(repo,"ports/ultima-iv/overlays.manifest.json"),path.join(output,"overlays.manifest.json"));
 try {
   cloudEnvironment(audience);
   await writeFile(path.join(output,"cloud-config.js"),renderCloudConfig(audience));

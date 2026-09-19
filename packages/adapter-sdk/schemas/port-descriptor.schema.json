@@ -19,6 +19,8 @@
     "settingsManifest",
     "diagnosticsSchemaVersion",
     "diagnosticsManifest",
+    "overlaysSchemaVersion",
+    "overlaysManifest",
     "saveSchemaVersion"
   ],
   "properties": {
@@ -94,6 +96,8 @@
     "settingsManifest": { "$ref": "#/$defs/repositoryPath" },
     "diagnosticsSchemaVersion": { "type": "integer", "minimum": 1 },
     "diagnosticsManifest": { "$ref": "#/$defs/repositoryPath" },
+    "overlaysSchemaVersion": { "type": "integer", "minimum": 1 },
+    "overlaysManifest": { "$ref": "#/$defs/repositoryPath" },
     "saveSchemaVersion": { "type": "integer", "minimum": 1 }
   },
   "$defs": {

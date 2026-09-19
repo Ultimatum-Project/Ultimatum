@@ -1094,6 +1094,18 @@ conversation/journal content, screenshots, and input streams by construction.
 The existing opt-in feedback transport is unchanged; generating diagnostics
 does not transmit anything or migrate user data.
 
+**Phase 1.7 common overlay host implemented:** A schema-backed overlay manifest
+now declares ownership, surface type, presentation, modality, world-context,
+gameplay, dismissal, and verified-host policy for Ultima IV's browser surfaces.
+The shared web host owns modal mutual exclusion, replacement/return stacks,
+initial focus, trigger-focus restoration, non-modal drawer presentation, and
+bounded lifecycle diagnostics. The adventure manager, game-data library,
+Journal, exploration map, feedback, Account hub, and mobile information drawer
+use this host without changing their visual design. Port-owned actions remain
+port-owned: xu4 still pauses and resumes the Journal, validates map actions,
+and controls save legality. No iOS UI, save format, setting, or stored data is
+migrated.
+
 - Shared single-game catalog template and local library model.
 - Generic import orchestration and install records.
 - IndexedDB compatibility provider plus an experimental OPFS provider behind the same contract.

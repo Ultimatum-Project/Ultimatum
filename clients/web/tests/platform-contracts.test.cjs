@@ -16,6 +16,8 @@ test("the Ultima IV port descriptor passes the executable adapter contract", asy
   assert.equal(manifest.portId,"xu4");
   assert.equal(manifest.saveSchemaVersion,1);
   assert.equal(manifest.capabilities.saves,"managed");
+  assert.ok(fs.existsSync(path.join(repo,manifest.settingsManifest)));
+  assert.ok(fs.existsSync(path.join(repo,manifest.controlsManifest)));
 });
 
 test("the Ultima IV catalog entry passes the shared catalog contract", async () => {
@@ -28,6 +30,52 @@ test("the Ultima IV catalog entry passes the shared catalog contract", async () 
   assert.deepEqual(catalog.artwork,[],"unreviewed artwork is not invented by the catalog");
   assert.throws(()=>validator.validateCatalogEntry({...catalog,gameId:"different"},{portDescriptor:port}),/disagrees/);
   assert.throws(()=>validator.validateCatalogEntry({...catalog,port:{...catalog.port,descriptor:"../outside.json"}}),/safe repository path/);
+});
+
+test("Ultima IV settings are typed, scoped, profile-complete and descriptor-versioned",async()=>{
+  const port=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/port.manifest.json"),"utf8"));
+  const manifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/settings.manifest.json"),"utf8"));
+  const validator=await import(pathToFileURL(path.join(repo,"packages/settings/src/validate-settings-manifest.mjs")));
+  assert.equal(validator.validateSettingsManifest(manifest,{portDescriptor:port}),manifest);
+  assert.equal(manifest.profiles.find(profile=>profile.recommended).id,"ultimatum");
+  assert.deepEqual(manifest.profiles.find(profile=>profile.id==="classic").values,{
+    "presentation.filter-movement-messages":false,"graphics.theme":"ega","navigation.exploration-map":false,"navigation.player-map-pins":false,
+  });
+  for(const setting of manifest.settings.filter(setting=>setting.scope==="device-host"))assert.equal(setting.portable,false,`${setting.id} cannot enter portable saves`);
+  assert.throws(()=>validator.validateSettingsManifest({...manifest,settings:manifest.settings.map(setting=>setting.id==="audio.music-volume"?{...setting,default:11}:setting)},{portDescriptor:port}),/default is invalid/);
+  assert.throws(()=>validator.validateSettingsManifest({...manifest,settings:manifest.settings.map(setting=>setting.id==="controls.handedness"?{...setting,portable:true}:setting)},{portDescriptor:port}),/must not be portable/);
+});
+
+test("Ultima IV action descriptors and verified desktop/touch profiles conform",async()=>{
+  const port=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/port.manifest.json"),"utf8"));
+  const manifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/controls.manifest.json"),"utf8"));
+  const validator=await import(pathToFileURL(path.join(repo,"packages/input-system/src/validate-control-manifest.mjs")));
+  assert.equal(validator.validateControlManifest(manifest,{portDescriptor:port}),manifest);
+  assert.deepEqual(manifest.profiles.map(profile=>profile.device).sort(),["keyboard","touch"]);
+  assert.ok(!manifest.profiles.some(profile=>profile.device==="controller"),"unimplemented controller support is not advertised");
+  const desktop=manifest.profiles.find(profile=>profile.id==="desktop-standard");
+  assert.ok(desktop.bindings.some(binding=>binding.actionId==="action.search"&&binding.input.id==="KeyS"&&binding.input.modifiers?.includes("Shift")));
+  const duplicate={...manifest,profiles:manifest.profiles.map(profile=>profile.id!=="desktop-standard"?profile:{...profile,bindings:[...profile.bindings,{actionId:"action.wait",input:{kind:"key",id:"Space"}}]})};
+  assert.throws(()=>validator.validateControlManifest(duplicate,{portDescriptor:port}),/duplicate physical binding/);
+});
+
+test("browser registries project engine settings and expose control profiles without migration",async()=>{
+  const settingsManifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/settings.manifest.json"),"utf8"));
+  const controlsManifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/controls.manifest.json"),"utf8"));
+  const {SettingsRegistry}=require(path.join(repo,"packages/settings/src/settings-registry.js"));
+  const {ControlRegistry}=require(path.join(repo,"packages/input-system/src/control-registry.js"));
+  const response=value=>async function(){assert.equal(this,globalThis,"browser host methods stay bound to their global object");return{ok:true,json:async()=>value};};
+  const settings=new SettingsRegistry({manifestUrl:"settings.manifest.json",fetch:response(settingsManifest)});
+  const projected=await settings.project({preferences:{profile:"assisted",filterMovementMessages:true,bumpInteractions:false,directInteractions:true,tapToWalk:false},video:"ega",capabilities:{explorationMap:true,mapPins:false},audio:{musicVolume:6,effectsVolume:4}},"web");
+  assert.equal(projected.values["experience.profile"],"assisted");
+  assert.equal(projected.values["graphics.theme"],"ega");
+  assert.equal(projected.values["audio.music-volume"],6);
+  assert.ok(!projected.unavailable.length);
+  assert.equal(projected.migrationPerformed,false);
+  const controls=await new ControlRegistry({manifestUrl:"controls.manifest.json",fetch:response(controlsManifest)}).inspect("web");
+  assert.deepEqual(controls.profiles.map(profile=>profile.id).sort(),["desktop-standard","touch-standard"]);
+  assert.equal(controls.selectionPersistence,"library-device-host");
+  assert.equal(controls.migrationPerformed,false);
 });
 
 test("web and native save providers declare the shared SaveStore v1 semantics",async()=>{
@@ -341,6 +389,10 @@ test("the active web app uses compatibility import and library boundaries",()=>{
   assert.match(app,/new window\.UltimatumIndexedDbLibraryStore\(\)/);
   assert.match(app,/UltimatumOpfsStorageProvider\?\.isSupported\(\)/);
   assert.match(app,/migrationPerformed:false/);
+  assert.match(app,/new window\.UltimatumSettingsRegistry/);
+  assert.match(app,/new window\.UltimatumControlRegistry/);
+  assert.match(app,/ultimatumSettingsDiagnostics/);
+  assert.match(app,/ultimatumControlDiagnostics/);
   assert.match(app,/new window\.UltimatumInstallationOrchestrator/);
   assert.match(app,/library\.inspect\("ultima4","xu4"\)/);
   assert.match(app,/new window\.UltimaIVImportAdapter/);

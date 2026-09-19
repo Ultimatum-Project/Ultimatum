@@ -19,3 +19,12 @@ changing either physical layout.
 `engine-session.manifest.json` declares the active web semantic-session and
 native lifecycle-session providers, their serialized execution models, and the
 source files that wire them into each client.
+
+`settings.manifest.json` describes the existing experience, interaction,
+touch-device, combat-presentation, graphics, and audio preferences with typed
+values and explicit scope. It does not replace or migrate `xu4rc`.
+
+`controls.manifest.json` describes semantic player actions and the verified
+desktop and touch profiles. It intentionally declares no controller profile
+until controller support has real runtime evidence. Control selections and
+device preferences are not portable adventure data.

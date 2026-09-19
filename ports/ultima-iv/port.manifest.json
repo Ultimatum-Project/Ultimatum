@@ -36,5 +36,7 @@
   },
   "actionsSchemaVersion": 1,
   "settingsSchemaVersion": 3,
+  "controlsManifest": "ports/ultima-iv/controls.manifest.json",
+  "settingsManifest": "ports/ultima-iv/settings.manifest.json",
   "saveSchemaVersion": 1
 }

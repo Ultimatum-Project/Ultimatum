@@ -1,0 +1,6 @@
+{
+  "name": "@ultimatum/input-system",
+  "version": "0.1.0",
+  "private": true,
+  "exports": "./src/validate-control-manifest.mjs"
+}

@@ -15,6 +15,10 @@ await cp(path.join(repo,"packages/import-framework/src/installation-orchestrator
 await cp(path.join(repo,"packages/session-orchestrator/src/session-orchestrator.js"),path.join(output,"session-orchestrator.js"));
 await cp(path.join(repo,"packages/storage/src/storage-provider-contract.js"),path.join(output,"storage-provider-contract.js"));
 await cp(path.join(repo,"packages/storage/src/opfs-storage-provider.js"),path.join(output,"opfs-storage-provider.js"));
+await cp(path.join(repo,"packages/settings/src/settings-registry.js"),path.join(output,"settings-registry.js"));
+await cp(path.join(repo,"packages/input-system/src/control-registry.js"),path.join(output,"control-registry.js"));
+await cp(path.join(repo,"ports/ultima-iv/settings.manifest.json"),path.join(output,"settings.manifest.json"));
+await cp(path.join(repo,"ports/ultima-iv/controls.manifest.json"),path.join(output,"controls.manifest.json"));
 try {
   cloudEnvironment(audience);
   await writeFile(path.join(output,"cloud-config.js"),renderCloudConfig(audience));

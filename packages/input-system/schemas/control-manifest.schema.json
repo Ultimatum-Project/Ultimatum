@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatumproject.com/schemas/control-manifest-v1.json",
+  "title": "Ultimatum semantic actions and control profiles",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "actionsVersion", "gameId", "portId", "actions", "profiles"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": 1},
+    "actionsVersion": {"type": "integer", "minimum": 1},
+    "gameId": {"$ref": "#/$defs/id"},
+    "portId": {"$ref": "#/$defs/id"},
+    "actions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/action"}},
+    "profiles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/profile"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "action": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "label", "category", "kind", "repeat", "required", "destructive"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "category": {"$ref": "#/$defs/id"}, "kind": {"enum": ["button", "axis1d", "axis2d", "pointer", "text"]},
+        "contexts": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+        "repeat": {"enum": ["none", "key", "continuous"]}, "required": {"type": "boolean"}, "destructive": {"type": "boolean"}
+      }
+    },
+    "binding": {
+      "type": "object", "additionalProperties": false, "required": ["actionId", "input"],
+      "properties": {"actionId": {"$ref": "#/$defs/id"}, "input": {"type": "object", "required": ["kind", "id"], "properties": {"kind": {"enum": ["key", "touch-control", "pointer", "gamepad-button", "gamepad-axis"]}, "id": {"type": "string", "minLength": 1, "maxLength": 80}, "modifiers": {"type": "array", "items": {"enum": ["Alt", "Control", "Meta", "Shift"]}, "uniqueItems": true}}, "additionalProperties": false}}
+    },
+    "profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "label", "device", "scope", "portable", "verifiedHosts", "bindings"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "label": {"type": "string", "minLength": 1, "maxLength": 80}, "device": {"enum": ["keyboard", "touch", "controller"]}, "scope": {"const": "device-host"}, "portable": {"const": false}, "verifiedHosts": {"type": "array", "items": {"enum": ["web", "native"]}, "minItems": 1, "uniqueItems": true}, "bindings": {"type": "array", "items": {"$ref": "#/$defs/binding"}, "minItems": 1}}
+    }
+  }
+}

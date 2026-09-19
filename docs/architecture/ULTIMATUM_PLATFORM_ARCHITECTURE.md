@@ -1074,6 +1074,15 @@ the prior bytes. It truthfully declares that browser OPFS does not provide a
 general crash-atomic multi-file transaction. No existing install or save is
 copied, opted in, or deleted, and no database migration is performed.
 
+**Phase 1.5 typed settings and control profiles implemented:** Shared
+schema-backed manifests now describe Ultima IV's stable semantic actions,
+verified desktop/touch bindings, typed setting values, ownership, scope,
+portability, apply policy, migration version, and complete experience-profile
+defaults. Browser registries project the live engine snapshot and expose safe
+diagnostics while the existing engine-owned menus and `xu4rc` remain the write
+path. Device/host preferences are explicitly non-portable, profile restoration
+cannot reset them, and no settings or control migration is performed.
+
 - Shared single-game catalog template and local library model.
 - Generic import orchestration and install records.
 - IndexedDB compatibility provider plus an experimental OPFS provider behind the same contract.

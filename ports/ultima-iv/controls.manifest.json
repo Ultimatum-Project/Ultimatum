@@ -1,0 +1,70 @@
+{
+  "$schema": "../../packages/input-system/schemas/control-manifest.schema.json",
+  "schemaVersion": 1,
+  "actionsVersion": 1,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "actions": [
+    {"id":"move.north","label":"Move north","category":"movement","kind":"button","contexts":["world","combat","dungeon"],"repeat":"key","required":true,"destructive":false},
+    {"id":"move.south","label":"Move south","category":"movement","kind":"button","contexts":["world","combat","dungeon"],"repeat":"key","required":true,"destructive":false},
+    {"id":"move.west","label":"Move west","category":"movement","kind":"button","contexts":["world","combat","dungeon"],"repeat":"key","required":true,"destructive":false},
+    {"id":"move.east","label":"Move east","category":"movement","kind":"button","contexts":["world","combat","dungeon"],"repeat":"key","required":true,"destructive":false},
+    {"id":"action.interact","label":"Contextual interact","category":"world","kind":"button","contexts":["world"],"repeat":"none","required":false,"destructive":false},
+    {"id":"action.talk","label":"Talk","category":"world","kind":"button","contexts":["world"],"repeat":"none","required":false,"destructive":false},
+    {"id":"action.cast","label":"Cast","category":"party","kind":"button","contexts":["world","combat"],"repeat":"none","required":false,"destructive":false},
+    {"id":"action.search","label":"Search","category":"world","kind":"button","contexts":["world","dungeon"],"repeat":"none","required":false,"destructive":false},
+    {"id":"action.wait","label":"Wait or pass","category":"world","kind":"button","contexts":["world","combat"],"repeat":"none","required":true,"destructive":false},
+    {"id":"ui.menu","label":"Menu","category":"interface","kind":"button","repeat":"none","required":false,"destructive":false},
+    {"id":"ui.map","label":"Exploration map","category":"interface","kind":"button","contexts":["world","dungeon"],"repeat":"none","required":false,"destructive":false},
+    {"id":"ui.journal","label":"Journal","category":"interface","kind":"button","repeat":"none","required":false,"destructive":false},
+    {"id":"prompt.cancel","label":"Cancel or back","category":"interface","kind":"button","repeat":"none","required":true,"destructive":false},
+    {"id":"combat.previous-target","label":"Previous target","category":"combat","kind":"button","contexts":["combat"],"repeat":"none","required":false,"destructive":false},
+    {"id":"combat.next-target","label":"Next target","category":"combat","kind":"button","contexts":["combat"],"repeat":"none","required":false,"destructive":false},
+    {"id":"combat.attack","label":"Attack selected target","category":"combat","kind":"button","contexts":["combat"],"repeat":"none","required":false,"destructive":false},
+    {"id":"combat.clear-target","label":"Clear target","category":"combat","kind":"button","contexts":["combat"],"repeat":"none","required":false,"destructive":false},
+    {"id":"combat.repeat-attack","label":"Repeat attack","category":"combat","kind":"button","contexts":["combat"],"repeat":"none","required":false,"destructive":false}
+  ],
+  "profiles": [
+    {
+      "id":"desktop-standard","label":"Desktop standard","device":"keyboard","scope":"device-host","portable":false,"verifiedHosts":["web"],
+      "bindings":[
+        {"actionId":"move.north","input":{"kind":"key","id":"ArrowUp"}},
+        {"actionId":"move.north","input":{"kind":"key","id":"KeyW"}},
+        {"actionId":"move.south","input":{"kind":"key","id":"ArrowDown"}},
+        {"actionId":"move.south","input":{"kind":"key","id":"KeyS"}},
+        {"actionId":"move.west","input":{"kind":"key","id":"ArrowLeft"}},
+        {"actionId":"move.west","input":{"kind":"key","id":"KeyA"}},
+        {"actionId":"move.east","input":{"kind":"key","id":"ArrowRight"}},
+        {"actionId":"move.east","input":{"kind":"key","id":"KeyD"}},
+        {"actionId":"action.talk","input":{"kind":"key","id":"KeyT"}},
+        {"actionId":"action.cast","input":{"kind":"key","id":"KeyC"}},
+        {"actionId":"action.search","input":{"kind":"key","id":"KeyS","modifiers":["Shift"]}},
+        {"actionId":"action.wait","input":{"kind":"key","id":"Space"}},
+        {"actionId":"prompt.cancel","input":{"kind":"key","id":"Escape"}}
+      ]
+    },
+    {
+      "id":"touch-standard","label":"Touch standard","device":"touch","scope":"device-host","portable":false,"verifiedHosts":["web","native"],
+      "bindings":[
+        {"actionId":"move.north","input":{"kind":"touch-control","id":"dpad-north"}},
+        {"actionId":"move.south","input":{"kind":"touch-control","id":"dpad-south"}},
+        {"actionId":"move.west","input":{"kind":"touch-control","id":"dpad-west"}},
+        {"actionId":"move.east","input":{"kind":"touch-control","id":"dpad-east"}},
+        {"actionId":"action.interact","input":{"kind":"touch-control","id":"contextual-interact"}},
+        {"actionId":"action.talk","input":{"kind":"touch-control","id":"talk"}},
+        {"actionId":"action.cast","input":{"kind":"touch-control","id":"spells"}},
+        {"actionId":"action.search","input":{"kind":"touch-control","id":"search"}},
+        {"actionId":"action.wait","input":{"kind":"touch-control","id":"wait"}},
+        {"actionId":"ui.menu","input":{"kind":"touch-control","id":"menu"}},
+        {"actionId":"ui.map","input":{"kind":"touch-control","id":"map"}},
+        {"actionId":"ui.journal","input":{"kind":"touch-control","id":"journal"}},
+        {"actionId":"prompt.cancel","input":{"kind":"touch-control","id":"visible-cancel"}},
+        {"actionId":"combat.previous-target","input":{"kind":"touch-control","id":"previous-target"}},
+        {"actionId":"combat.next-target","input":{"kind":"touch-control","id":"next-target"}},
+        {"actionId":"combat.attack","input":{"kind":"touch-control","id":"attack"}},
+        {"actionId":"combat.clear-target","input":{"kind":"touch-control","id":"clear-target"}},
+        {"actionId":"combat.repeat-attack","input":{"kind":"touch-control","id":"repeat-attack"}}
+      ]
+    }
+  ]
+}

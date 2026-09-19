@@ -48,6 +48,8 @@
       const cleanup=await opfs.beginTransaction("qa/phase1-04");cleanup.remove(path);await cleanup.commit();
       assert(await opfs.stat(path)===null,"Experimental OPFS runtime probe cleans up its test data");
     }
+    const controlProfiles=await window.ultimatumControlDiagnostics();
+    assert(controlProfiles.actionCount===18&&controlProfiles.profiles.some(profile=>profile.id==="desktop-standard")&&controlProfiles.profiles.some(profile=>profile.id==="touch-standard"),"Semantic actions expose verified desktop and touch profiles");
     for(const kind of ["missing","wrong-version","unsafe","duplicate","corrupt","too-large","too-many","ambiguous","split"]) {
       await submit(kind);
       assert(ui.importStatus.dataset.state==="error",`${kind} archive rejected through the actual URL importer`);
@@ -127,6 +129,8 @@
       previous=prompt.id;choice.click();return false;
     },"story and virtue questions reach gameplay");
     assert(stories===24 && questions===7 && state().party[0].name==="PublicHero","Public BYOD build completes original character creation and enters the world");
+    const typedSettings=await window.ultimatumSettingsDiagnostics();
+    assert(typedSettings.settingsVersion===3&&typedSettings.unavailable.length===0&&typedSettings.values["experience.profile"]===state().preferences.profile,"Typed settings project the live engine preferences without migration");
     assert(state().vgaAvailable && state().video==="vga" && !(await library.get("optional-overlay")),"New adventure runs in VGA without a separate patch upload");
     for(let i=0;i<2;i++) {
       const before=state().moves;document.querySelector('[data-key="32"]').click();

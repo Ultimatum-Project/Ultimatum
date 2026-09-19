@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimatumproject.com/schemas/settings-manifest-v1.json",
+  "title": "Ultimatum typed settings manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "settingsVersion", "migrationVersion", "gameId", "portId", "settings", "profiles"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": 1},
+    "settingsVersion": {"type": "integer", "minimum": 1},
+    "migrationVersion": {"type": "integer", "minimum": 1},
+    "gameId": {"$ref": "#/$defs/id"},
+    "portId": {"$ref": "#/$defs/id"},
+    "settings": {"type": "array", "items": {"$ref": "#/$defs/setting"}, "minItems": 1},
+    "profiles": {"type": "array", "items": {"$ref": "#/$defs/profile"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "type", "default", "owner", "scope", "portable", "applyPolicy", "hosts", "source"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "description": {"type": "string", "minLength": 1, "maxLength": 300},
+        "type": {"enum": ["boolean", "integer", "number", "string", "enum"]},
+        "default": {},
+        "values": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "minimum": {"type": "number"},
+        "maximum": {"type": "number"},
+        "owner": {"enum": ["platform", "host", "port", "engine"]},
+        "scope": {"enum": ["account", "device-host", "platform", "game", "installation-edition", "player-profile", "session"]},
+        "portable": {"type": "boolean"},
+        "applyPolicy": {"enum": ["immediate", "after-dismissal", "safe-boundary", "reload"]},
+        "profileControlled": {"type": "boolean"},
+        "hosts": {"type": "array", "items": {"enum": ["web", "native"]}, "minItems": 1, "uniqueItems": true},
+        "source": {"type": "string", "pattern": "^[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*$"}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description", "recommended", "values"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "description": {"type": "string", "minLength": 1, "maxLength": 300},
+        "recommended": {"type": "boolean"},
+        "values": {"type": "object", "minProperties": 1}
+      }
+    }
+  }
+}

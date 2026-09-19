@@ -1,0 +1,6 @@
+{
+  "name": "@ultimatum/settings",
+  "version": "0.1.0",
+  "private": true,
+  "exports": "./src/validate-settings-manifest.mjs"
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "../../packages/settings/schemas/settings-manifest.schema.json",
+  "schemaVersion": 1,
+  "settingsVersion": 3,
+  "migrationVersion": 3,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "settings": [
+    {"id":"experience.profile","label":"Experience profile","description":"Chooses presentation and convenience defaults without changing game rules.","type":"enum","values":["classic","ultimatum","assisted"],"default":"ultimatum","owner":"port","scope":"game","portable":false,"applyPolicy":"after-dismissal","profileControlled":false,"hosts":["web","native"],"source":"preferences.profile"},
+    {"id":"presentation.filter-movement-messages","label":"Movement messages","description":"Shows every classic movement message or filters routine repetition.","type":"boolean","default":true,"owner":"port","scope":"game","portable":false,"applyPolicy":"immediate","profileControlled":true,"hosts":["web","native"],"source":"preferences.filterMovementMessages"},
+    {"id":"graphics.theme","label":"Graphics","description":"Uses original EGA graphics or the verified VGA presentation when installed.","type":"enum","values":["ega","vga"],"default":"vga","owner":"port","scope":"installation-edition","portable":false,"applyPolicy":"immediate","profileControlled":true,"hosts":["web","native"],"source":"video"},
+    {"id":"navigation.exploration-map","label":"Exploration map","description":"Makes the adventure-owned exploration map available.","type":"boolean","default":true,"owner":"port","scope":"game","portable":false,"applyPolicy":"immediate","profileControlled":true,"hosts":["web","native"],"source":"capabilities.explorationMap"},
+    {"id":"navigation.player-map-pins","label":"Player map pins","description":"Allows personal pins on explored map locations.","type":"boolean","default":true,"owner":"port","scope":"game","portable":false,"applyPolicy":"immediate","profileControlled":true,"hosts":["web","native"],"source":"capabilities.mapPins"},
+    {"id":"interaction.bump-to-interact","label":"Bump to interact","type":"boolean","default":true,"owner":"port","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["web","native"],"source":"preferences.bumpInteractions"},
+    {"id":"interaction.direct-touch","label":"Tap to interact","type":"boolean","default":true,"owner":"port","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["web","native"],"source":"preferences.directInteractions"},
+    {"id":"interaction.tap-to-walk","label":"Tap to walk","type":"boolean","default":true,"owner":"port","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["web","native"],"source":"preferences.tapToWalk"},
+    {"id":"controls.touch-size","label":"Touch control size","type":"enum","values":["small","standard","large"],"default":"standard","owner":"host","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["native"],"source":"preferences.touchSize"},
+    {"id":"controls.handedness","label":"Control handedness","type":"enum","values":["right-handed","left-handed"],"default":"right-handed","owner":"host","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["native"],"source":"preferences.handedness"},
+    {"id":"controls.combat-presentation","label":"Combat pacing","description":"Changes presentation timing only, never combat rules.","type":"enum","values":["standard","fast"],"default":"standard","owner":"port","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["native"],"source":"preferences.combatPresentation"},
+    {"id":"audio.music-volume","label":"Music volume","type":"integer","minimum":0,"maximum":10,"default":10,"owner":"engine","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["web","native"],"source":"audio.musicVolume"},
+    {"id":"audio.effects-volume","label":"Sound effects volume","type":"integer","minimum":0,"maximum":10,"default":10,"owner":"engine","scope":"device-host","portable":false,"applyPolicy":"immediate","hosts":["web","native"],"source":"audio.effectsVolume"}
+  ],
+  "profiles": [
+    {"id":"classic","label":"Classic","description":"Original-style EGA presentation with all movement messages and no exploration-map conveniences.","recommended":false,"values":{"presentation.filter-movement-messages":false,"graphics.theme":"ega","navigation.exploration-map":false,"navigation.player-map-pins":false}},
+    {"id":"ultimatum","label":"Ultimatum","description":"Recommended modern presentation with VGA, filtered movement messages, exploration maps, and pins.","recommended":true,"values":{"presentation.filter-movement-messages":true,"graphics.theme":"vga","navigation.exploration-map":true,"navigation.player-map-pins":true}},
+    {"id":"assisted","label":"Assisted","description":"Accessibility-oriented profile; currently shares Ultimatum defaults and remains a stable extension point for reviewed assistance options.","recommended":false,"values":{"presentation.filter-movement-messages":true,"graphics.theme":"vga","navigation.exploration-map":true,"navigation.player-map-pins":true}}
+  ]
+}

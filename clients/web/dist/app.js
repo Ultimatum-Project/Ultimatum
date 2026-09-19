@@ -25,6 +25,10 @@ window.ultimatumStorageDiagnostics = async () => Object.freeze({
   estimate:await library.estimate(),
   migrationPerformed:false,
 });
+const settingsRegistry = new window.UltimatumSettingsRegistry({manifestUrl:"settings.manifest.json"});
+const controlRegistry = new window.UltimatumControlRegistry({manifestUrl:"controls.manifest.json"});
+window.ultimatumSettingsDiagnostics = () => settingsRegistry.project(engine.snapshot(),"web");
+window.ultimatumControlDiagnostics = () => controlRegistry.inspect("web");
 const gameDataImporter = new window.UltimaIVImportAdapter({
   gameData: window.UltimatumGameData,
   extractZip: (buffer, maxBytes) => engine.extractGameZip(buffer, maxBytes),

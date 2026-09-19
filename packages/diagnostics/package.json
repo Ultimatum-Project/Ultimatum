@@ -1,0 +1,6 @@
+{
+  "name": "@ultimatum/diagnostics",
+  "version": "0.1.0",
+  "private": true,
+  "exports": "./src/validate-diagnostics-manifest.mjs"
+}

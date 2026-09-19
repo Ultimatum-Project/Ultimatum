@@ -17,6 +17,8 @@
     "settingsSchemaVersion",
     "controlsManifest",
     "settingsManifest",
+    "diagnosticsSchemaVersion",
+    "diagnosticsManifest",
     "saveSchemaVersion"
   ],
   "properties": {
@@ -90,6 +92,8 @@
     "settingsSchemaVersion": { "type": "integer", "minimum": 1 },
     "controlsManifest": { "$ref": "#/$defs/repositoryPath" },
     "settingsManifest": { "$ref": "#/$defs/repositoryPath" },
+    "diagnosticsSchemaVersion": { "type": "integer", "minimum": 1 },
+    "diagnosticsManifest": { "$ref": "#/$defs/repositoryPath" },
     "saveSchemaVersion": { "type": "integer", "minimum": 1 }
   },
   "$defs": {

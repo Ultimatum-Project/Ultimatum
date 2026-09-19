@@ -8,4 +8,5 @@ The active web compatibility import adapter lives in
 `clients/web/dist/import-adapter.js`. Shared save and launch contracts are
 checked in alongside schema-backed typed settings and semantic control
 profiles. The descriptor points to the port manifests so hosts do not guess
-their locations.
+their locations. Phase 1.6 adds the port's stable diagnostic event declaration;
+collection, redaction and support-bundle assembly remain platform-owned.

@@ -1083,6 +1083,17 @@ diagnostics while the existing engine-owned menus and `xu4rc` remain the write
 path. Device/host preferences are explicitly non-portable, profile restoration
 cannot reset them, and no settings or control migration is performed.
 
+**Phase 1.6 structured local diagnostics implemented:** A shared diagnostics
+contract now validates port-owned stable event codes while the platform owns a
+bounded event collector, conservative field redaction, and support-snapshot
+assembly. The active browser host records semantic session transitions and
+projects only reviewed session, storage, settings, control, host, and version
+facts. Support snapshots are local-only and exclude original data, saves,
+filenames and paths, hashes and byte payloads, credentials, typed text,
+conversation/journal content, screenshots, and input streams by construction.
+The existing opt-in feedback transport is unchanged; generating diagnostics
+does not transmit anything or migrate user data.
+
 - Shared single-game catalog template and local library model.
 - Generic import orchestration and install records.
 - IndexedDB compatibility provider plus an experimental OPFS provider behind the same contract.

@@ -1,5 +1,5 @@
-const VERSION = "ultimatum-web-shell-20260918-phase1-05";
-const SHELL = ["./", "index.html", "app.css", "app.js", "engine-client.js", "engine-session.js", "session-orchestrator.js", "storage-provider-contract.js", "opfs-storage-provider.js", "library-store.js", "settings-registry.js", "control-registry.js", "settings.manifest.json", "controls.manifest.json", "import-adapter.js", "installation-orchestrator.js", "save-store.js", "adventure-ui.js", "journal-ui.js", "game-data.js", "game-data-manifest.js", "manifest.webmanifest"];
+const VERSION = "ultimatum-web-shell-20260918-phase1-06";
+const SHELL = ["./", "index.html", "app.css", "app.js", "engine-client.js", "engine-session.js", "session-orchestrator.js", "storage-provider-contract.js", "opfs-storage-provider.js", "library-store.js", "settings-registry.js", "control-registry.js", "diagnostics.js", "settings.manifest.json", "controls.manifest.json", "diagnostics.manifest.json", "import-adapter.js", "installation-orchestrator.js", "save-store.js", "adventure-ui.js", "journal-ui.js", "game-data.js", "game-data-manifest.js", "manifest.webmanifest"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));

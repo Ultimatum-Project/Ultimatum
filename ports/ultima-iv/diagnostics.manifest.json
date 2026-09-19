@@ -1,0 +1,12 @@
+{
+  "$schema": "../../packages/diagnostics/schemas/diagnostics-manifest.schema.json",
+  "schemaVersion": 1,
+  "diagnosticsVersion": 1,
+  "gameId": "ultima4",
+  "portId": "xu4",
+  "events": [
+    { "code": "session.state-change", "component": "session", "severity": "info", "detailKeys": ["state", "previous-state"] },
+    { "code": "session.recoverable-error", "component": "session", "severity": "warning", "detailKeys": ["state", "phase", "error-name"] },
+    { "code": "session.fatal-error", "component": "session", "severity": "error", "detailKeys": ["state", "phase", "error-name"] }
+  ]
+}

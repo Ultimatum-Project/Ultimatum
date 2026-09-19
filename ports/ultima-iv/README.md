@@ -28,3 +28,8 @@ values and explicit scope. It does not replace or migrate `xu4rc`.
 desktop and touch profiles. It intentionally declares no controller profile
 until controller support has real runtime evidence. Control selections and
 device preferences are not portable adventure data.
+
+`diagnostics.manifest.json` declares the stable xu4 session event codes that a
+host may record. The shared diagnostics package controls redaction and excludes
+game data, saves, typed text, input streams, screenshots and local paths from
+support snapshots.

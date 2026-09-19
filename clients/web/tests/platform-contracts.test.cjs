@@ -18,6 +18,7 @@ test("the Ultima IV port descriptor passes the executable adapter contract", asy
   assert.equal(manifest.capabilities.saves,"managed");
   assert.ok(fs.existsSync(path.join(repo,manifest.settingsManifest)));
   assert.ok(fs.existsSync(path.join(repo,manifest.controlsManifest)));
+  assert.ok(fs.existsSync(path.join(repo,manifest.diagnosticsManifest)));
 });
 
 test("the Ultima IV catalog entry passes the shared catalog contract", async () => {
@@ -76,6 +77,29 @@ test("browser registries project engine settings and expose control profiles wit
   assert.deepEqual(controls.profiles.map(profile=>profile.id).sort(),["desktop-standard","touch-standard"]);
   assert.equal(controls.selectionPersistence,"library-device-host");
   assert.equal(controls.migrationPerformed,false);
+});
+
+test("structured diagnostics validate port codes and redact support snapshots by construction",async()=>{
+  const port=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/port.manifest.json"),"utf8"));
+  const manifest=JSON.parse(fs.readFileSync(path.join(repo,"ports/ultima-iv/diagnostics.manifest.json"),"utf8"));
+  const validator=await import(pathToFileURL(path.join(repo,"packages/diagnostics/src/validate-diagnostics-manifest.mjs")));
+  assert.equal(validator.validateDiagnosticsManifest(manifest,{portDescriptor:port}),manifest);
+  assert.throws(()=>validator.validateDiagnosticsManifest({...manifest,events:[...manifest.events,manifest.events[0]]},{portDescriptor:port}),/duplicate/);
+  const {DiagnosticsCollector}=require(path.join(repo,"packages/diagnostics/src/diagnostics.js"));
+  let tick=0;
+  const collector=new DiagnosticsCollector({product:{id:"ultimatum-web",version:"test"},port:{gameId:"ultima4",portId:"xu4",version:"0.1.0",engineId:"xu4",engineVersion:"test"},maxEvents:2,sessionId:"test-session",now:()=>`2026-09-18T00:00:0${tick++}Z`});
+  collector.record({component:"session",code:"session.state-change",details:{state:"loading",path:"C:/Users/name/save",message:"private text"}});
+  collector.record({component:"session",code:"session.state-change",details:{state:"running",input:"ArrowUp"}});
+  collector.record({component:"session",severity:"warning",code:"session.recoverable-error",details:{phase:"flushing",token:"secret"}});
+  const bundle=collector.bundle({host:{kind:"web",online:true},save:{name:"Avatar"},notes:"typed words are unsafe"});
+  assert.equal(bundle.events.length,2,"diagnostic history is bounded");
+  assert.equal(bundle.privacy.localOnly,true);
+  assert.equal(bundle.privacy.sensitiveArtifactsIncluded,false);
+  assert.deepEqual(bundle.sections.host,{kind:"web",online:true});
+  assert.ok(!Object.hasOwn(bundle.sections,"save"));
+  assert.equal(bundle.sections.notes,"[redacted]");
+  assert.ok(bundle.events.every(event=>!Object.hasOwn(event.details,"input")&&!Object.hasOwn(event.details,"token")&&!Object.hasOwn(event.details,"path")&&!Object.hasOwn(event.details,"message")));
+  assert.throws(()=>collector.record({component:"session",code:"invalid code"}),/code is invalid/);
 });
 
 test("web and native save providers declare the shared SaveStore v1 semantics",async()=>{
@@ -393,6 +417,8 @@ test("the active web app uses compatibility import and library boundaries",()=>{
   assert.match(app,/new window\.UltimatumControlRegistry/);
   assert.match(app,/ultimatumSettingsDiagnostics/);
   assert.match(app,/ultimatumControlDiagnostics/);
+  assert.match(app,/new window\.UltimatumDiagnosticsCollector/);
+  assert.match(app,/ultimatumDiagnostics/);
   assert.match(app,/new window\.UltimatumInstallationOrchestrator/);
   assert.match(app,/library\.inspect\("ultima4","xu4"\)/);
   assert.match(app,/new window\.UltimaIVImportAdapter/);

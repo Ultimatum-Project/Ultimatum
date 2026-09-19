@@ -38,5 +38,7 @@
   "settingsSchemaVersion": 3,
   "controlsManifest": "ports/ultima-iv/controls.manifest.json",
   "settingsManifest": "ports/ultima-iv/settings.manifest.json",
+  "diagnosticsSchemaVersion": 1,
+  "diagnosticsManifest": "ports/ultima-iv/diagnostics.manifest.json",
   "saveSchemaVersion": 1
 }

@@ -15,7 +15,15 @@ const sessionOrchestrator = new window.UltimatumSessionOrchestrator({
   checkpoint: reason => secureActiveAdventure(reason),
 });
 window.ultimatumSessionDiagnostics = () => sessionOrchestrator.diagnostics();
-sessionOrchestrator.onProgress(event => { document.documentElement.dataset.sessionState = event.state; });
+const diagnostics = new window.UltimatumDiagnosticsCollector({
+  product:{id:"ultimatum-web",version:"20260918-phase1-06"},
+  port:{gameId:"ultima4",portId:"xu4",version:"0.1.0",engineId:"xu4",engineVersion:"1.0-git"},
+});
+sessionOrchestrator.onProgress(event => {
+  document.documentElement.dataset.sessionState = event.state;
+  const failed=event.state==="recoverable-error"||event.state==="fatal-error";
+  diagnostics.record({component:"session",severity:event.state==="fatal-error"?"error":event.state==="recoverable-error"?"warning":"info",code:failed?`session.${event.state}`:"session.state-change",details:failed?{state:event.state,phase:event.detail?.phase,"error-name":event.detail?.name}:{state:event.state,"previous-state":event.previousState}});
+});
 const library = new window.UltimatumIndexedDbLibraryStore();
 const experimentalOpfs = window.UltimatumOpfsStorageProvider?.isSupported() ? new window.UltimatumOpfsStorageProvider() : null;
 window.ultimatumStorageProviders = Object.freeze({default:library,experimentalOpfs});
@@ -29,6 +37,17 @@ const settingsRegistry = new window.UltimatumSettingsRegistry({manifestUrl:"sett
 const controlRegistry = new window.UltimatumControlRegistry({manifestUrl:"controls.manifest.json"});
 window.ultimatumSettingsDiagnostics = () => settingsRegistry.project(engine.snapshot(),"web");
 window.ultimatumControlDiagnostics = () => controlRegistry.inspect("web");
+window.ultimatumDiagnostics = async () => {
+  const [storage,settings,controls]=await Promise.all([window.ultimatumStorageDiagnostics(),window.ultimatumSettingsDiagnostics(),window.ultimatumControlDiagnostics()]);
+  const session=sessionOrchestrator.diagnostics();
+  return diagnostics.bundle({
+    host:{kind:"web",online:navigator.onLine,"storage-api":Boolean(navigator.storage)},
+    session:{state:session.state,"lease-supported":session.leaseSupported,"lease-acquired":session.leaseAcquired},
+    storage:{provider:storage.defaultProvider,"opfs-supported":storage.experimentalOpfs.supported,"opfs-selected":storage.experimentalOpfs.selected,"usage-bytes":storage.estimate?.usage,"quota-bytes":storage.estimate?.quota,"migration-performed":storage.migrationPerformed},
+    settings:{"schema-version":settings.schemaVersion,"settings-version":settings.settingsVersion,"unavailable-count":settings.unavailable.length,"migration-performed":settings.migrationPerformed},
+    controls:{"schema-version":controls.schemaVersion,"actions-version":controls.actionsVersion,"action-count":controls.actionCount,"verified-profile-count":controls.profiles.length,"migration-performed":controls.migrationPerformed},
+  });
+};
 const gameDataImporter = new window.UltimaIVImportAdapter({
   gameData: window.UltimatumGameData,
   extractZip: (buffer, maxBytes) => engine.extractGameZip(buffer, maxBytes),

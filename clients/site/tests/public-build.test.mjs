@@ -77,6 +77,7 @@ test("public routes include the homepage, real client and matching source, not t
   assert.match(play,/session-orchestrator.js/);
   assert.match(play,/storage-provider-contract.js/);assert.match(play,/opfs-storage-provider.js/);
   assert.match(play,/settings-registry.js/);assert.match(play,/control-registry.js/);
+  assert.match(play,/diagnostics.js/);
   assert.match(play,/installation-orchestrator.js/);
   assert.match(play,/library-store.js/);assert.match(play,/import-adapter.js/);
   assert.match(play,/save-store.js/);assert.doesNotMatch(play,/adventure-store.js/);
@@ -89,8 +90,10 @@ test("public routes include the homepage, real client and matching source, not t
   assert.match(await readFile(new URL("play/opfs-storage-provider.js",root),"utf8"),/UltimatumOpfsStorageProvider/);
   assert.match(await readFile(new URL("play/settings-registry.js",root),"utf8"),/UltimatumSettingsRegistry/);
   assert.match(await readFile(new URL("play/control-registry.js",root),"utf8"),/UltimatumControlRegistry/);
+  assert.match(await readFile(new URL("play/diagnostics.js",root),"utf8"),/UltimatumDiagnosticsCollector/);
   assert.equal(JSON.parse(await readFile(new URL("play/settings.manifest.json",root))).settingsVersion,3);
   assert.equal(JSON.parse(await readFile(new URL("play/controls.manifest.json",root))).actionsVersion,1);
+  assert.equal(JSON.parse(await readFile(new URL("play/diagnostics.manifest.json",root))).diagnosticsVersion,1);
   assert.match(await readFile(new URL("play/library-store.js",root),"utf8"),/UltimatumIndexedDbLibraryStore/);
   assert.match(await readFile(new URL("play/import-adapter.js",root),"utf8"),/UltimaIVImportAdapter/);
   assert.match(await readFile(new URL("play/installation-orchestrator.js",root),"utf8"),/InstallationOrchestrator/);
@@ -115,12 +118,14 @@ test("public routes include the homepage, real client and matching source, not t
   assert.ok(source.files.some(file=>file.path.endsWith("packages/storage/src/opfs-storage-provider.js")));
   assert.ok(source.files.some(file=>file.path.endsWith("packages/settings/schemas/settings-manifest.schema.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("packages/input-system/schemas/control-manifest.schema.json")));
+  assert.ok(source.files.some(file=>file.path.endsWith("packages/diagnostics/schemas/diagnostics-manifest.schema.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/save-store.manifest.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/engine-session.manifest.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/port.manifest.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/catalog-entry.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/settings.manifest.json")));
   assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/controls.manifest.json")));
+  assert.ok(source.files.some(file=>file.path.endsWith("ports/ultima-iv/diagnostics.manifest.json")));
   assert.ok(source.files.every(file=>!/(\.sav$|u4upgrad\.zip$|AVATAR\.EXE$|TITLE\.EXE$)/i.test(file.path)));
   assert.ok(source.files.every(file=>!file.path.includes("/music/")),"Bundled music payloads stay outside the downloadable engine source snapshot");
   assert.ok(source.files.some(file=>file.path.endsWith("ios/prepare-vga-upgrade.sh")));

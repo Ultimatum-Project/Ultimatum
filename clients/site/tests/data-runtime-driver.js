@@ -131,6 +131,10 @@
     assert(stories===24 && questions===7 && state().party[0].name==="PublicHero","Public BYOD build completes original character creation and enters the world");
     const typedSettings=await window.ultimatumSettingsDiagnostics();
     assert(typedSettings.settingsVersion===3&&typedSettings.unavailable.length===0&&typedSettings.values["experience.profile"]===state().preferences.profile,"Typed settings project the live engine preferences without migration");
+    const support=await window.ultimatumDiagnostics();
+    const serializedSupport=JSON.stringify(support);
+    assert(support.contractVersion===1&&support.privacy.localOnly&&!support.privacy.sensitiveArtifactsIncluded&&support.events.some(event=>event.code==="session.state-change"),"Structured local diagnostics assemble a bounded redacted support snapshot");
+    assert(!/PublicHero|party\.sav|conversation|journal|screenshot|input-stream/i.test(serializedSupport),"Support snapshot excludes adventure data, typed text, input streams and screenshots");
     assert(state().vgaAvailable && state().video==="vga" && !(await library.get("optional-overlay")),"New adventure runs in VGA without a separate patch upload");
     for(let i=0;i<2;i++) {
       const before=state().moves;document.querySelector('[data-key="32"]').click();

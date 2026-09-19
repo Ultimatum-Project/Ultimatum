@@ -45,25 +45,18 @@ both consume the same server-enforced 100 MiB allowance.
 
 ## Current production deployment
 
-Repository update 2026-09-18: current source packages only the soundtrack
-supplied with xu4. The deployment recorded below predates that removal and must
-be replaced before it represents the repository's current release policy.
-
-Verified September 17, 2026: the early-access package with compile-gated Debug
-Tools was deployed to Worker `ultimatum-project`, version
-`0725a961-b34e-4662-bc4e-25668ef7f574`. Both
-`https://ultimatumproject.com/` and `/play/` return HTTP 200; the hosted browser
-reaches the bring-your-own-data importer and opens the passwordless Account hub.
-The cloud client asset returns HTTP 200, an unknown route returns HTTP 404, and
-deployed metadata reports `musicIncluded: true`, `qaDebug: true`, and
-`cloudProject: ultimatum-prod`. This build uses shell cache version
-`20260917-mobile11`; the web client now presents named Saved Games rather than
-numbered adventure slots, while retaining the compatible three-slot storage and
-`.u4save` format underneath. Required Game Data provides its own Account entry
-point, closes before Account opens, and returns only after the player closes
-Account. Its account game-data scan
-uses supported filesystem metadata calls, and north-up overhead dungeons route
-direction input through cardinal movement rather than relative turning.
+Verified September 18, 2026: the early-access package with compile-gated Debug
+Tools and only the soundtrack supplied with xu4 was deployed to Worker
+`ultimatum-project`, version `2b9494dc-9365-4601-be32-dfec66f5d8a0`. Both
+`https://ultimatumproject.com/` and `/play/` return HTTP 200, published source is
+available under `/source/`, and an unknown route returns HTTP 404. The hosted
+browser reaches the bring-your-own-data importer; replacing it with Feedback and
+then cancelling Feedback restores the importer and its launching control. The
+seven-surface overlay manifest and shared web overlay host both return HTTP 200.
+This build uses shell cache version `20260918-phase1-07`, preserves the named
+Saved Games and compatible three-slot `.u4save` storage, and includes the Phase
+1 shared platform contracts through Phase 1.7. No database or save-data migration
+was required for this release.
 
 ## Test site: test.ultimatumproject.com
 
